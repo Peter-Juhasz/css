@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{86E0725D-9D84-4208-B36C-E76D638ADA23}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Css</RootNamespace>
+    <AssemblyName>Css</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Compatibility\IsExternalInit.cs" />
+    <Compile Include="Compatibility\Range.cs" />
+    <Compile Include="Data\CssWebData.cs" />
+    <Compile Include="Data\HtmlWebData.cs" />
+    <Compile Include="Diagnostics\Diagnostic.cs" />
+    <Compile Include="Diagnostics\DiagnosticsVisitor.cs" />
+    <Compile Include="Diagnostics\Severity.cs" />
+    <Compile Include="Extensions\Extensions.cs" />
+    <Compile Include="Outlining\OutliningSyntaxWalker.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Adornments\ColorsFinder.cs" />
+    <Compile Include="ReferenceHighlight\AttributeReferencesFinder.cs" />
+    <Compile Include="Semantics\ClassesFinder.cs" />
+    <Compile Include="ReferenceHighlight\ElementReferencesFinder.cs" />
+    <Compile Include="ReferenceHighlight\FunctionReferencesFinder.cs" />
+    <Compile Include="ReferenceHighlight\ClassReferencesFinder.cs" />
+    <Compile Include="Semantics\IdFinder.cs" />
+    <Compile Include="ReferenceHighlight\IdReferencesFinder.cs" />
+    <Compile Include="ReferenceHighlight\PropertyReferencesFinder.cs" />
+    <Compile Include="ReferenceHighlight\PropertyValueReferencesFinder.cs" />
+    <Compile Include="ReferenceHighlight\PseudoClassReferencesFinder.cs" />
+    <Compile Include="ReferenceHighlight\PseudoElementReferencesFinder.cs" />
+    <Compile Include="ReferenceHighlight\ReferenceHighlighter.cs" />
+    <Compile Include="Semantics\VariableDefinitionFinder.cs" />
+    <Compile Include="ReferenceHighlight\VariableReferencesFinder.cs" />
+    <Compile Include="Semantics\ISymbol.cs" />
+    <Compile Include="Source\SourcePoint.cs" />
+    <Compile Include="Source\SourceSpan.cs" />
+    <Compile Include="Structure\StructureSyntaxWalker.cs" />
+    <Compile Include="Syntax\DocumentSyntax.cs" />
+    <Compile Include="Syntax\Extensions.cs" />
+    <Compile Include="Syntax\Parser.cs" />
+    <Compile Include="Syntax\SyntaxFactory.cs" />
+    <Compile Include="Syntax\SyntaxLocatorWalker.cs" />
+    <Compile Include="Syntax\SyntaxNodeFromPointLocatorWalker.cs" />
+    <Compile Include="Syntax\SyntaxTree.cs" />
+    <Compile Include="Syntax\SyntaxWalker.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Data\css.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Bcl.HashCode">
+      <Version>1.1.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Primitives">
+      <Version>8.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>5.0.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Data\html.json" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
