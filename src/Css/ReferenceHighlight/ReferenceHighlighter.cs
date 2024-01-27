@@ -28,6 +28,7 @@ public class ReferenceHighlighter
         Process(matches, n => InspectForPseudoClassSelector(syntaxTree, n, triggerPoint, list));
         Process(matches, n => InspectForPseudoElementSelector(syntaxTree, n, triggerPoint, list));
         Process(matches, n => InspectForPropertyValue(syntaxTree, n, triggerPoint, list));
+        Process(matches, n => InspectForNamedColor(syntaxTree, n, triggerPoint, list));
         TryMatchStringExpressionQuotes(syntaxTree, matches.Before, list);
         TryMatchStringExpressionQuotes(syntaxTree, matches.After, list);
         InspectForFunctionName(syntaxTree, matches.Contains, triggerPoint, list);
@@ -189,6 +190,42 @@ public class ReferenceHighlighter
             var span = new SourceSpan(found.Position, found.Node.Width);
             collect.Add(span);
         });
+        finder.Visit(syntaxTree);
+    }
+
+    private void InspectForNamedColor(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<SourceSpan> collect)
+    {
+        if (node == null)
+        {
+            return;
+        }
+
+        if (node.Node is not IdentifierExpressionSyntax identifierSyntax)
+        {
+            return;
+        }
+
+        if (!node.TryFindFirstAncestorUpwards<PropertySyntax>(out var propertySyntax))
+        {
+            return;
+        }
+
+        if (!CssWebData.Index.Properties.TryGetValue(propertySyntax.NameSyntax.NameToken.Value, out var definition))
+        {
+            return;
+        }
+
+        if (!definition.Restrictions.Contains("color"))
+        {
+            return;
+        }
+
+        if (!CssWebData.Index.NamedColors.TryGetValue(identifierSyntax.NameToken.Value, out var color))
+        {
+            return;
+        }
+
+        var finder = new ColorReferencesFinder(color, collect.Add);
         finder.Visit(syntaxTree);
     }
 

@@ -8,3 +8,4 @@ public record struct SourceSpan(int Position, int Length)
 
     public readonly bool Contains(SourcePoint point) => Position <= point.Position && point.Position < End;
 }
+

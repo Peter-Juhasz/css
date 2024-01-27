@@ -1,4 +1,5 @@
-﻿using EditorTest.Extensions;
+﻿using Css.Source;
+using EditorTest.Extensions;
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -107,11 +108,15 @@ public record class NestingSelectorSyntax(PunctationToken AmpersandToken) : Simp
 public record class PropertySyntax(PropertyNameSyntax NameSyntax, PunctationToken ColonToken, PropertyValueSyntax ValueSyntax, PunctationToken SemicolonToken) : SyntaxNode
 {
     protected override int ChildrenWidth => NameSyntax.Width + ColonToken.Width + ValueSyntax.Width + SemicolonToken.Width;
+
+    public bool IsVariable => NameSyntax.NameToken.Value.StartsWith("--", StringComparison.Ordinal);
 }
 
 public record class PropertyNameSyntax(IdentifierToken NameToken) : SyntaxNode
 {
     protected override int ChildrenWidth => NameToken.Width;
+
+    public RelativeSourceSpan GetNameSpan() => new(this, LeadingTrivia.Width(), NameToken.Width);
 }
 
 public abstract record class ExpressionSyntax : SyntaxNode
@@ -127,6 +132,8 @@ public record class NumberExpressionSyntax(NumberToken NumberToken) : Expression
 public record class NumberWithUnitSyntax(NumberToken NumberToken, UnitToken UnitToken) : ExpressionSyntax
 {
     protected override int ChildrenWidth => NumberToken.Width + UnitToken.Width;
+
+    public RelativeSourceSpan GetUnitSpan() => new(this, LeadingTrivia.Width() + NumberToken.Width, UnitToken.Width);
 }
 
 public record class IdentifierExpressionSyntax(IdentifierToken NameToken) : ExpressionSyntax

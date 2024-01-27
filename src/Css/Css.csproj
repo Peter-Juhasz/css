@@ -56,6 +56,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Adornments\ColorsFinder.cs" />
     <Compile Include="ReferenceHighlight\AttributeReferencesFinder.cs" />
+    <Compile Include="ReferenceHighlight\ColorReferencesFinder.cs" />
     <Compile Include="Semantics\ClassesFinder.cs" />
     <Compile Include="ReferenceHighlight\ElementReferencesFinder.cs" />
     <Compile Include="ReferenceHighlight\FunctionReferencesFinder.cs" />
@@ -70,6 +71,8 @@
     <Compile Include="Semantics\VariableDefinitionFinder.cs" />
     <Compile Include="ReferenceHighlight\VariableReferencesFinder.cs" />
     <Compile Include="Semantics\ISymbol.cs" />
+    <Compile Include="Source\RelativeSourceSpan.cs" />
+    <Compile Include="Source\SourceEdit.cs" />
     <Compile Include="Source\SourcePoint.cs" />
     <Compile Include="Source\SourceSpan.cs" />
     <Compile Include="Structure\StructureSyntaxWalker.cs" />

@@ -141,7 +141,7 @@ public record struct SnapshotNode(int Position, AbstractSyntaxNode Node, IReadOn
 
 public record struct SnapshotNode<TSyntax>(int Position, TSyntax Node, IReadOnlyList<SyntaxNode>? Ancestors = null) where TSyntax : AbstractSyntaxNode
 {
-    public SourceSpan Extent => new(Position, Node.Width);
+    public readonly SourceSpan Extent => new(Position, Node.Width);
 
     public bool TryFindFirstAncestorUpwards<TAncestor>( out TAncestor ancestor) where TAncestor : SyntaxNode
     {

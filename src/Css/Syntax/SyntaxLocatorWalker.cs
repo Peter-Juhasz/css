@@ -4,9 +4,9 @@ using System.Runtime.CompilerServices;
 
 namespace EditorTest.Syntax;
 
-public abstract class SyntaxLocatorWalker : SyntaxWalker
+public abstract class SyntaxLocatorWalker(int initialPosition = 0) : SyntaxWalker
 {
-    private int _position = 0;
+    private int _position = initialPosition;
 
     protected int Consumed => _position;
     protected bool IsCancelled { get; private set; }
