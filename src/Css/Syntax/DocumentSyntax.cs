@@ -74,6 +74,16 @@ public record class RuleDeclarationSyntax(SelectorListSyntax Selectors, SyntaxTo
     protected override int ChildrenWidth => Selectors.Width + OpenBrace.Width + Nodes.Width + CloseBrace.Width;
 }
 
+public abstract record class DirectiveSyntax(KeywordToken KeywordToken) : SyntaxNode
+{
+
+}
+
+public record class ImportDirectiveSyntax(KeywordToken KeywordToken, WhiteSpaceTrivia Delimiter, StringToken PathToken, PunctationToken SemicolonToken) : DirectiveSyntax(KeywordToken)
+{
+    protected override int ChildrenWidth => KeywordToken.Width + Delimiter.Width + PathToken.Width + SemicolonToken.Width;
+}
+
 public abstract record class SimpleSelectorSyntax : SyntaxNode
 {
 

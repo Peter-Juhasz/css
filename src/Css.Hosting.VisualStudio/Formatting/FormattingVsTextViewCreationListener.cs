@@ -87,7 +87,7 @@ internal sealed class FormattingVsTextViewCreationListener : IVsTextViewCreation
                 return;
             }
 
-            using var edit = TextView.TextBuffer.CreateEdit();
+            using var edit = textView.TextBuffer.CreateEdit();
             if (edit.Snapshot != snapshot)
             {
                 return;

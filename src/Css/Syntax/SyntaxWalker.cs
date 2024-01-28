@@ -31,6 +31,7 @@ public abstract class SyntaxWalker
             switch (child)
             {
                 case RuleDeclarationSyntax n: Visit(n); break;
+                case DirectiveSyntax n: Visit(n); break;
             }
         }
         VisitTrailingTrivia(node);
@@ -95,6 +96,14 @@ public abstract class SyntaxWalker
         VisitTrailingTrivia(node);
     }
 
+    public virtual void Visit(DirectiveSyntax node)
+    {
+        switch (node)
+        {
+            case ImportDirectiveSyntax n: Visit(n); break;
+        }
+    }
+
     public virtual void Visit(SimpleSelectorSyntax node)
     {
         switch (node)
@@ -108,6 +117,16 @@ public abstract class SyntaxWalker
             case PseudoClassSelectorSyntax n: Visit(n); break;
             case PseudoElementSelectorSyntax n: Visit(n); break;
         }
+    }
+
+    public virtual void Visit(ImportDirectiveSyntax node)
+    {
+        VisitLeadingTrivia(node);
+        VisitToken(node.KeywordToken);
+        VisitTrivia(node.Delimiter);
+        VisitToken(node.PathToken);
+        VisitToken(node.SemicolonToken);
+        VisitTrailingTrivia(node);
     }
 
     public virtual void Visit(UniversalSelectorSyntax node)
@@ -313,6 +332,7 @@ public abstract class SyntaxWalker
             case IdentifierToken t: Visit(t); break;
             case UnitToken t: Visit(t); break;
             case HexColorToken t: Visit(t); break;
+            case KeywordToken t: Visit(t); break;
         }
     }
 
@@ -329,6 +349,8 @@ public abstract class SyntaxWalker
     public virtual void Visit(UnitToken node) { }
 
     public virtual void Visit(HexColorToken node) { }
+
+    public virtual void Visit(KeywordToken node) { }
 
 
     public virtual void VisitTrivia(SyntaxTrivia trivia)

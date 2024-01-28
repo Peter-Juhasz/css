@@ -50,6 +50,7 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
         private IReadOnlyList<Completion>? _globalAttributes;
         private IReadOnlyList<Completion>? _units;
         private IReadOnlyList<Completion>? _valueKeywords;
+        private IReadOnlyList<Completion>? _directiveKeywords;
         private IReadOnlyList<Completion>? _functions;
         private IReadOnlyList<Completion>? _colors;
         private IReadOnlyList<Completion>? _systemColors;
@@ -92,6 +93,7 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
             Process(matches, m => TryAddPropertiesAsValues(snapshot, syntaxTree, m, builder));
             Process(matches, m => TryCompleteAttributeSelectorName(snapshot, syntaxTree, m, triggerPoint.Value, builder));
             Process(matches, m => TryCompleteAttributeSelectorValue(snapshot, syntaxTree, m, triggerPoint.Value, builder));
+            Process(matches, m => TryCompleteDirectiveKeywords(snapshot, syntaxTree, m, builder));
 
             if (builder.Completions.Count == 0)
                 return;
@@ -476,6 +478,26 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
             builder.SetSpan(trackingSpan);
             builder.AddFilter(new IntellisenseFilter(KnownMonikers.KeywordSnippet, "Keywords", "K", "Keywords"));
             builder.Add(_valueKeywords);
+            return true;
+        }
+
+        private bool TryCompleteDirectiveKeywords(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
+        {
+            if (node.Node is not DirectiveSyntax directiveSyntax)
+            {
+                return false;
+            }
+
+            if (_directiveKeywords == null)
+            {
+                _directiveKeywords = CssWebData.Index.DirectivesSorted.Select(p => new Completion(p.Name, p.Name, p.Description, _keywordGlyph, null)).ToList();
+            }
+
+            var span = new Span(node.Position + directiveSyntax.LeadingTrivia.Width(), directiveSyntax.KeywordToken.Width);
+            var trackingSpan = snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
+            builder.SetSpan(trackingSpan);
+            builder.AddFilter(new IntellisenseFilter(KnownMonikers.KeywordSnippet, "Keywords", "K", "Keywords"));
+            builder.Add(_directiveKeywords);
             return true;
         }
 

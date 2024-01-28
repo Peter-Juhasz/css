@@ -40,11 +40,18 @@ public static class SyntaxFactory
 
         _propertyNameSyntaxCache = CssWebData.Index.Properties.Keys.ToDictionary(k => new StringSegment(k), k => new PropertyNameSyntax(new(k)));
         _unitTokenCache = CssWebData.Index.ValueUnitsSorted.ToDictionary(u => new StringSegment(u), u => new UnitToken(u));
+
+        // keyword cache
+        foreach (var item in new[] { "@import" })
+        {
+            _keywordCache[item] = new(item);
+        }
     }
 
     private static readonly IReadOnlyDictionary<StringSegment, IdentifierToken> _identifierCache;
     private static readonly IReadOnlyDictionary<StringSegment, WhiteSpaceTrivia> _whitespaceCache;
     private static readonly Dictionary<StringSegment, HexColorExpressionSyntax> _hexColorCache = new();
+    private static readonly Dictionary<StringSegment, KeywordToken> _keywordCache = new();
 
     public static readonly WhiteSpaceTrivia _space = new(" ");
     public static readonly WhiteSpaceTrivia _tab = new("\t");
@@ -68,6 +75,7 @@ public static class SyntaxFactory
     public static readonly PunctationToken _missingPunctation = new(System.String.Empty);
 
     public static readonly OperatorToken _missingOperator = new(System.String.Empty);
+    public static readonly StringToken _missingString = new ImplicitStringToken(System.String.Empty);
 
 
     public static WhiteSpaceTrivia Space => _space;
@@ -186,6 +194,10 @@ public static class SyntaxFactory
     public static UniversalSelectorSyntax Universal() => _universal;
 
     public static NestingSelectorSyntax Nesting() => _nesting;
+
+
+    public static KeywordToken Keyword(StringSegment text) => _keywordCache.TryGetValue(text, out var token) ? token : new(text.Value ?? string.Empty);
+
 
     public static HexColorExpressionSyntax HexColor(StringSegment text)
     {

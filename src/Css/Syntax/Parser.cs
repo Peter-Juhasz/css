@@ -41,7 +41,13 @@ public static class Parser
 
         while (remaining.Length > 0)
         {
-            if (TryReadDeclarationSyntax(remaining, out var property))
+            if (TryReadImportDirectiveSyntax(remaining, out var importDirective))
+            {
+                nodes.Add(importDirective);
+                remaining = remaining.Subsegment(importDirective.Width);
+                continue;
+            }
+            else if (TryReadDeclarationSyntax(remaining, out var property))
             {
                 nodes.Add(property);
                 remaining = remaining.Subsegment(property.Width);
@@ -85,6 +91,18 @@ public static class Parser
                 read = segment.Subsegment(0, value.Length);
                 return true;
             }
+        }
+
+        read = default;
+        return false;
+    }
+
+    public static bool TryReadExact(this StringSegment segment, string value, out StringSegment read, StringComparison comparison = StringComparison.Ordinal)
+    {
+        if (segment.StartsWith(value, comparison))
+        {
+            read = segment.Subsegment(0, value.Length);
+            return true;
         }
 
         read = default;
@@ -424,6 +442,50 @@ public static class Parser
         return true;
     }
 
+    public static bool TryReadImportDirectiveSyntax(this StringSegment segment, out ImportDirectiveSyntax? syntax)
+    {
+        // name
+        if (TryReadTrivia(segment, out var leadingTrivia))
+        {
+            segment = segment.Subsegment(leadingTrivia.Width());
+        }
+
+        // keyword
+        if (!TryReadExact(segment, "@import", out var keywordSegment, StringComparison.OrdinalIgnoreCase))
+        {
+            syntax = null;
+            return false;
+        }
+        var keyword = SyntaxFactory.Keyword(keywordSegment);
+        segment = segment.Subsegment(keywordSegment.Length);
+
+        // delimiter
+        TryReadWhitespace(segment, out var delimiter);
+        segment = segment.Subsegment(delimiter.Width);
+
+        // value
+        if (!TryReadString(segment, ';', out var value))
+        {
+            value = SyntaxFactory.String(String.Empty);
+        }
+        segment = segment.Subsegment(value.Width);
+
+        // semicolon
+        if (TryReadPunctation(segment, ';', out var semicolon))
+        {
+            segment = segment.Subsegment(1);
+        }
+
+        TryReadTrivia(segment, out var trailingTrivia);
+
+        syntax = new ImportDirectiveSyntax(keyword, delimiter, value, semicolon)
+        {
+            LeadingTrivia = leadingTrivia,
+            TrailingTrivia = trailingTrivia
+        };
+        return true;
+    }
+
     public static bool TryReadPropertySyntax(this StringSegment segment, out PropertySyntax? syntax)
     {
         // name
@@ -688,13 +750,13 @@ public static class Parser
             return true;
         }
 
-        if (TryReadPunctation(segment, '*', out var star))
+        if (TryReadPunctation(segment, '*', out _))
         {
             syntax = SyntaxFactory.Universal();
             return true;
         }
 
-        if (TryReadPunctation(segment, '&', out var ampersand))
+        if (TryReadPunctation(segment, '&', out _))
         {
             syntax = SyntaxFactory.Nesting();
             return true;

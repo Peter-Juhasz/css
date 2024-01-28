@@ -119,6 +119,11 @@ internal class ClassifierSyntaxWalker(SnapshotSpan span, ClassificationRegistry 
         Add(node.Width, registry.Number);
     }
 
+    public override void Visit(KeywordToken node)
+    {
+        Add(node.Width, registry.Keyword);
+    }
+
     public override void Visit(StringToken node)
     {
         Add(node.Width, registry.String);

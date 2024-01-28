@@ -54,6 +54,7 @@
     <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="Formatting\Formatter.cs" />
     <Compile Include="Formatting\FormatWalker.cs" />
+    <Compile Include="Indentation\IndentationWalker.cs" />
     <Compile Include="Outlining\OutliningSyntaxWalker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Adornments\ColorsFinder.cs" />

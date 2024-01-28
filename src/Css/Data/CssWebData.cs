@@ -8,6 +8,7 @@ namespace EditorTest.Data;
 
 public record class CssWebData(
     IReadOnlyList<PropertyData> Properties,
+    IReadOnlyList<DirectiveData> AtDirectives,
     IReadOnlyList<PseudoClassData> PseudoClasses,
     IReadOnlyList<PseudoElementData> PseudoElements
 )
@@ -343,6 +344,8 @@ public record class SystemColor(string Name, string Description);
 
 public record class PseudoClassData(string Name, string Description);
 
+public record class DirectiveData(string Name, string Description);
+
 public record class PseudoElementData(string Name, string Description);
 
 
@@ -380,6 +383,11 @@ public record class CssWebDataIndex(CssWebData Data)
     public IReadOnlyList<string> ValueKeywordsSorted { get; } = Data.Keywords.OrderBy(c => c).ToList();
 
     public ISet<string> ValueKeywordsSet { get; } = Data.Keywords.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+
+    public IReadOnlyList<DirectiveData> DirectivesSorted { get; } = Data.AtDirectives.OrderBy(c => c.Name).ToList();
+
+    public ISet<string> DirectiveKeywordsSet { get; } = Data.AtDirectives.Select(d => d.Name).ToHashSet();
 
 
     public IReadOnlyList<string> FunctionNamesSorted { get; } = Data.Functions.OrderBy(c => c).ToList();
