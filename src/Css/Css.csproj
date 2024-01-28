@@ -52,6 +52,8 @@
     <Compile Include="Diagnostics\DiagnosticsVisitor.cs" />
     <Compile Include="Diagnostics\Severity.cs" />
     <Compile Include="Extensions\Extensions.cs" />
+    <Compile Include="Formatting\Formatter.cs" />
+    <Compile Include="Formatting\FormatWalker.cs" />
     <Compile Include="Outlining\OutliningSyntaxWalker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Adornments\ColorsFinder.cs" />
@@ -72,7 +74,7 @@
     <Compile Include="ReferenceHighlight\VariableReferencesFinder.cs" />
     <Compile Include="Semantics\ISymbol.cs" />
     <Compile Include="Source\RelativeSourceSpan.cs" />
-    <Compile Include="Source\SourceEdit.cs" />
+    <Compile Include="Source\SourceChange.cs" />
     <Compile Include="Source\SourcePoint.cs" />
     <Compile Include="Source\SourceSpan.cs" />
     <Compile Include="Structure\StructureSyntaxWalker.cs" />

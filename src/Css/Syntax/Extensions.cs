@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Primitives;
+﻿using Css.Source;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -75,6 +76,56 @@ public static partial class Extensions
 
         return width;
     }
+
+    public static bool IsWhiteSpace(this IImmutableList<SyntaxTrivia> list)
+    {
+        if (list.Count == 0)
+        {
+            return false;
+        }
+
+        if (list.Count == 1)
+        {
+            return list[0] is WhiteSpaceTrivia;
+        }
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i] is not WhiteSpaceTrivia)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static bool HasComment(this IImmutableList<SyntaxTrivia> list)
+    {
+        if (list.Count == 0)
+        {
+            return false;
+        }
+
+        if (list.Count == 1)
+        {
+            return list[0] is CommentTrivia;
+        }
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i] is CommentTrivia)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static RelativeSourceSpan GetLeadingTriviaExtent(this SyntaxNode node) => new(node, 0, node.LeadingTrivia.Width());
+
+    public static RelativeSourceSpan GetTrailingTriviaExtent(this SyntaxNode node) => new(node, node.Width - node.TrailingTrivia.Width(), node.TrailingTrivia.Width());
 
     public static StringSegment Subsegment(this StringSegment segment, Range range) => range.GetOffsetAndLength(segment.Length) is (int offset, int length) ? segment.Subsegment(offset, length) : throw new InvalidOperationException();
     

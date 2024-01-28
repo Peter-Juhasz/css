@@ -22,4 +22,9 @@ public static partial class Extensions
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SnapshotSpan ToSnapshotSpan(this SourceSpan span, ITextSnapshot snapshot) => new(snapshot, span.Position, span.Length);
+
+    public static void Apply(this ITextEdit edit, SourceChange change)
+    {
+        edit.Replace(change.Span.ToSpan(), change.NewText);
+    }
 }

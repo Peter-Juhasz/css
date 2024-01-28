@@ -63,6 +63,7 @@
     <Compile Include="Diagnostics\DiagnosticErrorTag.cs" />
     <Compile Include="Diagnostics\ErrorTaggerProvider.cs" />
     <Compile Include="Diagnostics\IDiagnosticErrorTag.cs" />
+    <Compile Include="Formatting\FormattingVsTextViewCreationListener.cs" />
     <Compile Include="Structure\Structure.cs" />
     <Compile Include="Outlining\Outlining.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

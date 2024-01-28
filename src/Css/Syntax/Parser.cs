@@ -383,7 +383,7 @@ public static class Parser
             {
                 peekSegment = peekSegment.Subsegment(identifier.Length);
                 if (TryReadTrivia(peekSegment, out var trivia2)) peekSegment = peekSegment.Subsegment(trivia2.Width());
-                if (peekSegment.PeekSafe() is ':' or '}' or '\0' or ';')
+                if (peekSegment.PeekSafe() is ':' or '}' or '\0' or ';' or '\n' or '\r')
                 {
                     if (TryReadPropertySyntax(segment, out var property))
                     {
