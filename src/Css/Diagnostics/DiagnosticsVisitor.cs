@@ -38,7 +38,47 @@ public class DiagnosticsVisitor(Action<Diagnostic> report) : SyntaxLocatorWalker
         base.Visit(node);
     }
 
-    public override void Visit(IdSelectorSyntax node)
+	public override void Visit(ImportDirectiveSyntax node)
+	{
+		if (node.Delimiter.IsMissing())
+		{
+			ReportAfter(node, "1", Severity.Error, $"Space is missing.");
+		}
+		else if (node.SemicolonToken.IsMissing())
+		{
+			ReportAfter(node, "1", Severity.Error, $"Semicolon is missing.");
+		}
+
+		base.Visit(node);
+	}
+
+	public override void Visit(CharsetDirectiveSyntax node)
+	{
+		if (node.Delimiter.IsMissing())
+		{
+			ReportAfter(node, "1", Severity.Error, $"Space is missing.");
+		}
+		else if (node.Delimiter.Text != " ")
+		{
+			ReportAfter(node.Delimiter, "1", Severity.Error, $"Delimiter must be exactly one space.", offset: node.LeadingTrivia.Width() + node.KeywordToken.Width + node.Delimiter.Width);
+		}
+		else if (node.CharsetToken.IsMissing())
+		{
+			ReportAfter(node, "1", Severity.Error, $"Charset is missing.");
+		}
+		else if (node.CharsetToken is not QuotedStringToken { IsClosed: true, Quote: '"' })
+		{
+			Report(node.CharsetToken, "1", Severity.Error, $"Charset must be enclosed in double quotes.", offset: node.LeadingTrivia.Width() + node.KeywordToken.Width + node.Delimiter.Width);
+		}
+		else if (node.SemicolonToken.IsMissing())
+		{
+			ReportAfter(node, "1", Severity.Error, $"Semicolon is missing.");
+		}
+
+		base.Visit(node);
+	}
+
+	public override void Visit(IdSelectorSyntax node)
     {
         if (node.NameToken.IsMissing())
         {

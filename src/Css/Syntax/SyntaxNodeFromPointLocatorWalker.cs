@@ -49,8 +49,14 @@ public class SyntaxNodeFromPointLocatorWalker(int position) : SyntaxLocatorWalke
     }
 
     public override void Visit(DirectiveSyntax node)
-    {
-        Inspect(node);
+	{
+		if (Consumed + node.Width < position)
+		{
+			MarkAsConsumed(node);
+			return;
+		}
+
+		Inspect(node);
         base.Visit(node);
     }
 

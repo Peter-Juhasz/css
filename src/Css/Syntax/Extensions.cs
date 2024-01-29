@@ -34,7 +34,10 @@ public static partial class Extensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsMissing(this SyntaxToken token) => token.Text.Length == 0;
 
-    public static bool TryFindFirstAncestorUpwards<TSyntax>(this SnapshotNode node, out TSyntax ancestor) where TSyntax : SyntaxNode
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsMissing(this WhiteSpaceTrivia token) => token.Text.Length == 0;
+
+	public static bool TryFindFirstAncestorUpwards<TSyntax>(this SnapshotNode node, out TSyntax ancestor) where TSyntax : SyntaxNode
     {
         if (node.Ancestors == null)
         {

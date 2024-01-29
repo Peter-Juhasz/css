@@ -41,10 +41,10 @@ public static class Parser
 
         while (remaining.Length > 0)
         {
-            if (TryReadImportDirectiveSyntax(remaining, out var importDirective))
+            if (TryReadDirectiveSyntax(remaining, out var directive))
             {
-                nodes.Add(importDirective);
-                remaining = remaining.Subsegment(importDirective.Width);
+                nodes.Add(directive);
+                remaining = remaining.Subsegment(directive.Width);
                 continue;
             }
             else if (TryReadDeclarationSyntax(remaining, out var property))
@@ -412,15 +412,23 @@ public static class Parser
                 }
             }
 
-            // nested rule
-            if (TryReadDeclarationSyntax(segment, out var nested))
+            // directive
+            if (peekSegment.PeekSafe() is '@' && TryReadDirectiveSyntax(segment, out var directive))
             {
-                list.Add(nested);
-                segment = segment.Subsegment(nested.Width);
+                list.Add(directive);
+                segment = segment.Subsegment(directive.Width);
                 continue;
             }
 
-            break;
+			// nested rule
+			if (TryReadDeclarationSyntax(segment, out var nested))
+			{
+				list.Add(nested);
+				segment = segment.Subsegment(nested.Width);
+				continue;
+			}
+
+			break;
         }
 
         // close
@@ -442,7 +450,73 @@ public static class Parser
         return true;
     }
 
-    public static bool TryReadImportDirectiveSyntax(this StringSegment segment, out ImportDirectiveSyntax? syntax)
+	public static bool TryReadDirectiveSyntax(this StringSegment segment, out DirectiveSyntax? syntax)
+    {
+        if (TryReadImportDirectiveSyntax(segment, out var import))
+        {
+            syntax = import;
+			return true;
+		}
+		else if (TryReadCharsetDirectiveSyntax(segment, out var charset))
+        {
+			syntax = charset;
+			return true;
+		}
+		else if (segment.PeekSafe() is '@' && TryReadIdentifier(segment.Subsegment(1), out var keyword))
+		{
+			syntax = new SpeculativeDirectiveSyntax(SyntaxFactory.Keyword(segment.Subsegment(0, 1 + keyword.Length)));
+			return true;
+		}
+
+		syntax = null;
+		return false;
+    }
+
+	public static bool TryReadCharsetDirectiveSyntax(this StringSegment segment, out CharsetDirectiveSyntax? syntax)
+	{
+		// name
+		if (TryReadTrivia(segment, out var leadingTrivia))
+		{
+			segment = segment.Subsegment(leadingTrivia.Width());
+		}
+
+		// keyword
+		if (!TryReadExact(segment, "@charset", out var keywordSegment, StringComparison.OrdinalIgnoreCase))
+		{
+			syntax = null;
+			return false;
+		}
+		var keyword = SyntaxFactory.Keyword(keywordSegment);
+		segment = segment.Subsegment(keywordSegment.Length);
+
+		// delimiter
+		TryReadWhitespace(segment, out var delimiter);
+		segment = segment.Subsegment(delimiter.Width);
+
+		// value
+		if (!TryReadString(segment, ';', out var value))
+		{
+			value = SyntaxFactory.String(String.Empty);
+		}
+		segment = segment.Subsegment(value.Width);
+
+		// semicolon
+		if (TryReadPunctation(segment, ';', out var semicolon))
+		{
+			segment = segment.Subsegment(1);
+		}
+
+		TryReadTrivia(segment, out var trailingTrivia);
+
+		syntax = new CharsetDirectiveSyntax(keyword, delimiter, value, semicolon)
+		{
+			LeadingTrivia = leadingTrivia,
+			TrailingTrivia = trailingTrivia
+		};
+		return true;
+	}
+
+	public static bool TryReadImportDirectiveSyntax(this StringSegment segment, out ImportDirectiveSyntax? syntax)
     {
         // name
         if (TryReadTrivia(segment, out var leadingTrivia))

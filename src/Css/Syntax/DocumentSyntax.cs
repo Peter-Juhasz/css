@@ -81,7 +81,17 @@ public abstract record class DirectiveSyntax(KeywordToken KeywordToken) : Syntax
 
 public record class ImportDirectiveSyntax(KeywordToken KeywordToken, WhiteSpaceTrivia Delimiter, StringToken PathToken, PunctationToken SemicolonToken) : DirectiveSyntax(KeywordToken)
 {
-    protected override int ChildrenWidth => KeywordToken.Width + Delimiter.Width + PathToken.Width + SemicolonToken.Width;
+	protected override int ChildrenWidth => KeywordToken.Width + Delimiter.Width + PathToken.Width + SemicolonToken.Width;
+}
+
+public record class CharsetDirectiveSyntax(KeywordToken KeywordToken, WhiteSpaceTrivia Delimiter, StringToken CharsetToken, PunctationToken SemicolonToken) : DirectiveSyntax(KeywordToken)
+{
+    protected override int ChildrenWidth => KeywordToken.Width + Delimiter.Width + CharsetToken.Width + SemicolonToken.Width;
+}
+
+public record class SpeculativeDirectiveSyntax(KeywordToken KeywordToken) : DirectiveSyntax(KeywordToken)
+{
+	protected override int ChildrenWidth => KeywordToken.Width;
 }
 
 public abstract record class SimpleSelectorSyntax : SyntaxNode
