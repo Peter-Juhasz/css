@@ -1,6 +1,6 @@
-﻿using EditorTest.Extensions;
+﻿using Css.Extensions;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public abstract class SyntaxWalker
 {
@@ -103,6 +103,7 @@ public abstract class SyntaxWalker
 			case ImportDirectiveSyntax n: Visit(n); break;
 			case CharsetDirectiveSyntax n: Visit(n); break;
 			case SpeculativeDirectiveSyntax n: Visit(n); break;
+			case FontFaceDirectiveSyntax n: Visit(n); break;
 		}
 	}
 
@@ -119,6 +120,19 @@ public abstract class SyntaxWalker
 			case PseudoClassSelectorSyntax n: Visit(n); break;
 			case PseudoElementSelectorSyntax n: Visit(n); break;
 		}
+	}
+
+	public virtual void Visit(FontFaceDirectiveSyntax node)
+	{
+		VisitLeadingTrivia(node);
+		VisitToken(node.KeywordToken);
+		VisitToken(node.OpenBrace);
+		foreach (var property in node.Properties.Items.AsValueEnumerable())
+		{
+			Visit(property);
+		}
+		VisitToken(node.CloseBrace);
+		VisitTrailingTrivia(node);
 	}
 
 	public virtual void Visit(ImportDirectiveSyntax node)
@@ -222,17 +236,10 @@ public abstract class SyntaxWalker
 	public virtual void Visit(PropertySyntax node)
 	{
 		VisitLeadingTrivia(node);
-		Visit(node.NameSyntax);
+		VisitToken(node.NameToken);
 		VisitToken(node.ColonToken);
 		Visit(node.ValueSyntax);
 		VisitToken(node.SemicolonToken);
-		VisitTrailingTrivia(node);
-	}
-
-	public virtual void Visit(PropertyNameSyntax node)
-	{
-		VisitLeadingTrivia(node);
-		VisitToken(node.NameToken);
 		VisitTrailingTrivia(node);
 	}
 
@@ -279,7 +286,7 @@ public abstract class SyntaxWalker
 		switch (node)
 		{
 			case NumberExpressionSyntax t: Visit(t); break;
-			case NumberWithUnitSyntax t: Visit(t); break;
+			case NumberWithUnitExpressionSyntax t: Visit(t); break;
 			case IdentifierExpressionSyntax t: Visit(t); break;
 			case StringExpressionSyntax t: Visit(t); break;
 			case FunctionCallExpressionSyntax t: Visit(t); break;
@@ -301,7 +308,7 @@ public abstract class SyntaxWalker
 		VisitTrailingTrivia(node);
 	}
 
-	public virtual void Visit(NumberWithUnitSyntax node)
+	public virtual void Visit(NumberWithUnitExpressionSyntax node)
 	{
 		VisitLeadingTrivia(node);
 		VisitToken(node.NumberToken);
@@ -340,9 +347,9 @@ public abstract class SyntaxWalker
 	}
 
 
-	public virtual void VisitToken(SyntaxToken trivia)
+	public virtual void VisitTokenCore(SyntaxToken token)
 	{
-		switch (trivia)
+		switch (token)
 		{
 			case NumberToken t: Visit(t); break;
 			case PunctationToken t: Visit(t); break;
@@ -353,6 +360,13 @@ public abstract class SyntaxWalker
 			case HexColorToken t: Visit(t); break;
 			case KeywordToken t: Visit(t); break;
 		}
+	}
+
+	public virtual void VisitToken(SyntaxToken token)
+	{
+		VisitLeadingTrivia(token);
+		VisitTokenCore(token);
+		VisitTrailingTrivia(token);
 	}
 
 	public virtual void Visit(NumberToken node) { }

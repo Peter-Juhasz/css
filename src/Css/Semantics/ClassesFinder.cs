@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Linq;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public class ClassesFinder(Action<string> found) : SyntaxLocatorWalker
 {

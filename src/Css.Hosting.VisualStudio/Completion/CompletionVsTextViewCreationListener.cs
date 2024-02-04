@@ -11,7 +11,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace EditorTest.CodeCompletion;
+namespace Css.Hosting.VisualStudio.CodeCompletion;
 
 [Export(typeof(IVsTextViewCreationListener))]
 [ContentType(EditorClassifier1.ContentType)]

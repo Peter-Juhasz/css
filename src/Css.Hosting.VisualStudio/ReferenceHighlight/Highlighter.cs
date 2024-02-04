@@ -1,6 +1,6 @@
 ﻿using Css.ReferenceHighlight;
-using EditorTest.Data;
-using EditorTest.Syntax;
+using Css.Data;
+using Css.Syntax;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 
-namespace EditorTest.ReferenceHighlight;
+namespace Css.Hosting.VisualStudio.ReferenceHighlight;
 
 [Export(typeof(IViewTaggerProvider))]
 [TagType(typeof(ITextMarkerTag))]

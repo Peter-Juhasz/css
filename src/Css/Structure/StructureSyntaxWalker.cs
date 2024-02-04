@@ -1,7 +1,7 @@
-﻿using EditorTest.Syntax;
+﻿using Css.Syntax;
 using System;
 
-namespace EditorTest.Outlining;
+namespace Css.Outlining;
 
 public class StructureSyntaxWalker(Action<SnapshotNode<RuleDeclarationSyntax>> found) : SyntaxNodeFinder<RuleDeclarationSyntax>(found)
 {

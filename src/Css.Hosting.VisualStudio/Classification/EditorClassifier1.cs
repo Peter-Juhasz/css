@@ -1,5 +1,5 @@
-﻿using EditorTest.Classification;
-using EditorTest.Syntax;
+﻿using Css.Hosting.VisualStudio.Classification;
+using Css.Syntax;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 
-namespace EditorTest;
+namespace Css.Hosting.VisualStudio;
 
 public class ClassificationRegistry(IClassificationTypeRegistryService registry)
 {

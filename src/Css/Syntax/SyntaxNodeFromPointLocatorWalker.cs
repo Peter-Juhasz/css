@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public class SyntaxNodeFromPointLocatorWalker(int position) : SyntaxLocatorWalker
 {
@@ -12,11 +12,6 @@ public class SyntaxNodeFromPointLocatorWalker(int position) : SyntaxLocatorWalke
     private SnapshotNode? _contains;
     private SnapshotNode? _after;
 
-    public override void Visit(PropertyNameSyntax node)
-    {
-        Inspect(node);
-        base.Visit(node);
-    }
 
     public override void Visit(StringExpressionSyntax node)
     {
@@ -24,7 +19,7 @@ public class SyntaxNodeFromPointLocatorWalker(int position) : SyntaxLocatorWalke
         base.Visit(node);
     }
 
-    public override void Visit(NumberWithUnitSyntax node)
+    public override void Visit(NumberWithUnitExpressionSyntax node)
     {
         Inspect(node);
         base.Visit(node);

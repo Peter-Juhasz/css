@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using System.ComponentModel.Composition;
 
-namespace EditorTest.BraceCompletion;
+namespace Css.Hosting.VisualStudio.BraceCompletion;
 
 [Export(typeof(IBraceCompletionSessionProvider))]
 [ContentType(EditorClassifier1.ContentType)]

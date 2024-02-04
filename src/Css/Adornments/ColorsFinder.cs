@@ -1,7 +1,7 @@
-﻿using EditorTest.Data;
+﻿using Css.Data;
 using System;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public class ColorsFinder(Action<SnapshotNode<AbstractSyntaxNode>> found) : SyntaxNodeFinder<AbstractSyntaxNode>(found)
 {

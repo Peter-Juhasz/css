@@ -1,4 +1,4 @@
-﻿namespace EditorTest.Syntax;
+﻿namespace Css.Syntax;
 
 public record class SyntaxTree(RootSyntax Root)
 {

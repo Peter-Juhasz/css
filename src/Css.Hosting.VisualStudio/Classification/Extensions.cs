@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.Text;
 using System.Runtime.CompilerServices;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public static partial class Extensions
 {

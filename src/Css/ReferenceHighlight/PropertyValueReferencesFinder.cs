@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public class PropertyValueReferencesFinder(string propertyName, string valueName, Action<SnapshotNode<IdentifierToken>> found) : SyntaxNodeFinder<IdentifierToken>(found)
 {
     public override void Visit(PropertySyntax node)
     {
-        if (node.NameSyntax.NameToken.Value != propertyName)
+        if (node.NameToken.Value != propertyName)
         {
             MarkAsConsumed(node);
             return;

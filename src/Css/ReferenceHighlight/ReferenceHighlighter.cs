@@ -1,6 +1,6 @@
 ﻿using Css.Source;
-using EditorTest.Data;
-using EditorTest.Syntax;
+using Css.Data;
+using Css.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,8 +18,8 @@ public class ReferenceHighlighter
     public IReadOnlyList<SourceSpan> GetHighlightedSpans(SyntaxTree syntaxTree, SyntaxNodeSearchResult matches, SourcePoint triggerPoint)
     {
         var list = new List<SourceSpan>();
-        Process(matches, n => InspectForPropertyName(syntaxTree, n, list));
-        Process(matches, n => InspectForVariablePropertyName(syntaxTree, n, list));
+        Process(matches, n => InspectForPropertyName(syntaxTree, n, triggerPoint, list));
+        Process(matches, n => InspectForVariablePropertyName(syntaxTree, n, triggerPoint, list));
         Process(matches, n => InspectForElementSelector(syntaxTree, n, triggerPoint, list));
         Process(matches, n => InspectForAttributeSelectorName(syntaxTree, n, triggerPoint, list));
         Process(matches, n => TryMatchAttributeSelectorValueQuotes(syntaxTree, n, triggerPoint, list));
@@ -63,23 +63,28 @@ public class ReferenceHighlighter
     }
 
 
-    private void InspectForPropertyName(SyntaxTree syntaxTree, SnapshotNode node, IList<SourceSpan> collect)
+    private void InspectForPropertyName(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<SourceSpan> collect)
     {
         if (node == null)
         {
             return;
         }
 
-        if (node.Node is PropertyNameSyntax propertyName)
-        {
-            if (!CssWebData.Index.Properties.ContainsKey(propertyName.NameToken.Value))
+        if (node.Node is PropertySyntax propertyName)
+		{
+			if (!propertyName.GetNameSpan().ToAbsolute(node.Position).Contains(point))
+			{
+				return;
+			}
+
+			if (!CssWebData.Index.Properties.ContainsKey(propertyName.NameToken.Value))
             {
                 return;
             }
 
             var finder = new PropertyReferencesFinder(propertyName.NameToken.Value, found =>
             {
-                var span = new SourceSpan(found.Position, found.Node.Width);
+                var span = new SourceSpan(found.Position, found.Node.InnerWidth);
                 collect.Add(span);
             });
             finder.Visit(syntaxTree);
@@ -91,7 +96,7 @@ public class ReferenceHighlighter
                 return;
             }
 
-            if (!CssWebData.Index.Properties.TryGetValue(property.NameSyntax.NameToken.Value, out var definition))
+            if (!CssWebData.Index.Properties.TryGetValue(property.NameToken.Value, out var definition))
             {
                 return;
             }
@@ -108,14 +113,14 @@ public class ReferenceHighlighter
 
             var finder = new PropertyReferencesFinder(identifier.NameToken.Value, found =>
             {
-                var span = new SourceSpan(found.Position, found.Node.Width);
+                var span = new SourceSpan(found.Position, found.Node.InnerWidth);
                 collect.Add(span);
             });
             finder.Visit(syntaxTree);
         }
     }
 
-    private void InspectForVariablePropertyName(SyntaxTree syntaxTree, SnapshotNode node, IList<SourceSpan> collect)
+    private void InspectForVariablePropertyName(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<SourceSpan> collect)
     {
         if (node == null)
         {
@@ -123,9 +128,14 @@ public class ReferenceHighlighter
         }
 
         string? variableName = null;
-        if (node.Node is PropertyNameSyntax propertyName && propertyName.NameToken.Value.StartsWith("--", StringComparison.Ordinal))
-        {
-            variableName = propertyName.NameToken.Value;
+        if (node.Node is PropertySyntax propertyName && propertyName.NameToken.Value.StartsWith("--", StringComparison.Ordinal))
+		{
+			if (!propertyName.GetNameSpan().ToAbsolute(node.Position).Contains(point))
+			{
+				return;
+			}
+
+			variableName = propertyName.NameToken.Value;
         }
         else if (node.Node is IdentifierExpressionSyntax identifierSyntax && identifierSyntax.NameToken.Value.StartsWith("--", StringComparison.Ordinal) &&
             node.TryFindFirstAncestorUpwards<FunctionCallExpressionSyntax>(out var functionSyntax) && functionSyntax.NameToken.Value.Equals("var", StringComparison.Ordinal))
@@ -169,7 +179,7 @@ public class ReferenceHighlighter
             return;
         }
 
-        if (!CssWebData.Index.Properties.TryGetValue(propertySyntax.NameSyntax.NameToken.Value, out var definition))
+        if (!CssWebData.Index.Properties.TryGetValue(propertySyntax.NameToken.Value, out var definition))
         {
             return;
         }
@@ -185,7 +195,7 @@ public class ReferenceHighlighter
         }
 
         var nameSpan = new SourceSpan(node.Position + identifierSyntax.LeadingTrivia.Width(), identifierSyntax.NameToken.Width + 1);
-        var finder = new PropertyValueReferencesFinder(propertySyntax.NameSyntax.NameToken.Value, identifierSyntax.NameToken.Value, found =>
+        var finder = new PropertyValueReferencesFinder(propertySyntax.NameToken.Value, identifierSyntax.NameToken.Value, found =>
         {
             var span = new SourceSpan(found.Position, found.Node.Width);
             collect.Add(span);
@@ -210,7 +220,7 @@ public class ReferenceHighlighter
             return;
         }
 
-        if (!CssWebData.Index.Properties.TryGetValue(propertySyntax.NameSyntax.NameToken.Value, out var definition))
+        if (!CssWebData.Index.Properties.TryGetValue(propertySyntax.NameToken.Value, out var definition))
         {
             return;
         }

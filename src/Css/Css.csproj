@@ -84,6 +84,9 @@
     <Compile Include="Syntax\Parser.cs" />
     <Compile Include="Syntax\SyntaxFactory.cs" />
     <Compile Include="Syntax\SyntaxLocatorWalker.cs" />
+    <Compile Include="Syntax\SyntaxNode.Expressions.cs" />
+    <Compile Include="Syntax\SyntaxNode.Tokens.cs" />
+    <Compile Include="Syntax\SyntaxNode.Trivia.cs" />
     <Compile Include="Syntax\SyntaxNodeFromPointLocatorWalker.cs" />
     <Compile Include="Syntax\SyntaxTree.cs" />
     <Compile Include="Syntax\SyntaxWalker.cs" />
@@ -108,5 +111,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Data\html.json" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -4,162 +4,162 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace EditorTest.Data;
+namespace Css.Data;
 
 public record class CssWebData(
-    IReadOnlyList<PropertyData> Properties,
-    IReadOnlyList<DirectiveData> AtDirectives,
-    IReadOnlyList<PseudoClassData> PseudoClasses,
-    IReadOnlyList<PseudoElementData> PseudoElements
+	IReadOnlyList<PropertyData> Properties,
+	IReadOnlyList<DirectiveData> AtDirectives,
+	IReadOnlyList<PseudoClassData> PseudoClasses,
+	IReadOnlyList<PseudoElementData> PseudoElements
 )
 {
-    public static CssWebData Load()
-    {
-        var type = typeof(CssWebData).Assembly;
-        using var stream = type.GetManifestResourceStream($"{type.GetName().Name}.Data.css.json");
-        using var reader = new JsonTextReader(new StreamReader(stream));
-        var serializer = new JsonSerializer();
-        var original = serializer.Deserialize<CssWebData>(reader);
-        return original with
-        {
-            PseudoClasses = original.PseudoClasses.Select(p => p with
-            {
-                Name = p.Name.Substring(1)
-            }).ToList(),
-            PseudoElements = original.PseudoElements.Select(p => p with
-            {
-                Name = p.Name.Substring(2)
-            }).ToList(),
-        };
-    }
+	public static CssWebData Load()
+	{
+		var type = typeof(CssWebData).Assembly;
+		using var stream = type.GetManifestResourceStream($"{type.GetName().Name}.Data.css.json");
+		using var reader = new JsonTextReader(new StreamReader(stream));
+		var serializer = new JsonSerializer();
+		var original = serializer.Deserialize<CssWebData>(reader);
+		return original with
+		{
+			PseudoClasses = original.PseudoClasses.Select(p => p with
+			{
+				Name = p.Name.Substring(1)
+			}).ToList(),
+			PseudoElements = original.PseudoElements.Select(p => p with
+			{
+				Name = p.Name.Substring(2)
+			}).ToList(),
+		};
+	}
 
-    public static CssWebDataIndex Index = new(Load());
+	public static CssWebDataIndex Index = new(Load());
 
-    public IReadOnlyList<string> Units =
-        [
-        "%",
-        "px",
-        "em",
-        "rem",
-        "vw",
-        "vh",
-        "svw",
-        "svh",
-        "lvw",
-        "lvh",
-        "dvw",
-        "dvh",
-        "vb",
-        "vi",
-        "lh",
-        "rlh",
-        "vmin",
-        "vmax",
-        "cm",
-        "mm",
-        "in",
-        "pt",
-        "pc",
-        "ch",
-        "q",
-        "deg",
-        "grad",
-        "rad",
-        "s",
-        "ms",
-        ];
+	public IReadOnlyList<string> Units =
+		[
+		"%",
+		"px",
+		"em",
+		"rem",
+		"vw",
+		"vh",
+		"svw",
+		"svh",
+		"lvw",
+		"lvh",
+		"dvw",
+		"dvh",
+		"vb",
+		"vi",
+		"lh",
+		"rlh",
+		"vmin",
+		"vmax",
+		"cm",
+		"mm",
+		"in",
+		"pt",
+		"pc",
+		"ch",
+		"q",
+		"deg",
+		"grad",
+		"rad",
+		"s",
+		"ms",
+		];
 
-    public IReadOnlyList<string> Keywords = [
-        "inherit",
-        "initial",
-        "revert",
-        "revert-layer",
-        "unset",
-    ];
+	public IReadOnlyList<string> Keywords = [
+		"inherit",
+		"initial",
+		"revert",
+		"revert-layer",
+		"unset",
+	];
 
-    public IReadOnlyList<string> Functions = [
-        "abs",
-        "acos",
-        "asin",
-        "atan",
-        "atan2",
-        "attr",
-        "blur",
-        "brightness",
-        "cos",
-        "contrast",
-        "cross-fade",
-        "cubic-bezier",
-        "conic-gradient",
-        "circle",
-        "clamp",
-        "drop-shadow",
-        "element",
-        "ellipse",
-        "env",
-        "exp",
-        "fit-content",
-        "format",
-        "grayscale",
-        "hsl",
-        "hsla",
-        "hue-rotate",
-        "hypot",
-        "image",
-        "image-set",
-        "inset",
-        "invert",
-        "linear-gradient",
-        "local",
-        "log",
-        "matrix",
-        "matrix3d",
-        "max",
-        "min",
-        "minmax",
-        "mod",
-        "opacity",
-        "paint",
-        "range",
-        "ray",
-        "rect",
-        "rem",
-        "repeat",
-        "repeating-conic-gradient",
-        "repeating-linear-gradient",
-        "repeating-radial-gradient",
-        "reverse",
-        "rotate",
-        "rotate3d",
-        "rotateX",
-        "rotateY",
-        "rotateZ",
-        "round",
-        "rgb",
-        "rgba",
-        "scale",
-        "scale3d",
-        "scaleX",
-        "scaleY",
-        "scaleZ",
-        "scroll",
-        "sepia",
-        "skew",
-        "sign",
-        "sin",
-        "sqrt",
-        "steps",
-        "translate",
-        "translate3d",
-        "translateX",
-        "translateY",
-        "translateZ",
-        "url",
-        "var",
-    ];
+	public IReadOnlyList<string> Functions = [
+		"abs",
+		"acos",
+		"asin",
+		"atan",
+		"atan2",
+		"attr",
+		"blur",
+		"brightness",
+		"cos",
+		"contrast",
+		"cross-fade",
+		"cubic-bezier",
+		"conic-gradient",
+		"circle",
+		"clamp",
+		"drop-shadow",
+		"element",
+		"ellipse",
+		"env",
+		"exp",
+		"fit-content",
+		"format",
+		"grayscale",
+		"hsl",
+		"hsla",
+		"hue-rotate",
+		"hypot",
+		"image",
+		"image-set",
+		"inset",
+		"invert",
+		"linear-gradient",
+		"local",
+		"log",
+		"matrix",
+		"matrix3d",
+		"max",
+		"min",
+		"minmax",
+		"mod",
+		"opacity",
+		"paint",
+		"range",
+		"ray",
+		"rect",
+		"rem",
+		"repeat",
+		"repeating-conic-gradient",
+		"repeating-linear-gradient",
+		"repeating-radial-gradient",
+		"reverse",
+		"rotate",
+		"rotate3d",
+		"rotateX",
+		"rotateY",
+		"rotateZ",
+		"round",
+		"rgb",
+		"rgba",
+		"scale",
+		"scale3d",
+		"scaleX",
+		"scaleY",
+		"scaleZ",
+		"scroll",
+		"sepia",
+		"skew",
+		"sign",
+		"sin",
+		"sqrt",
+		"steps",
+		"translate",
+		"translate3d",
+		"translateX",
+		"translateY",
+		"translateZ",
+		"url",
+		"var",
+	];
 
-    public IReadOnlyList<ColorData> Colors = [
-    new ColorData("aliceblue", "#F0F8FF", "240 248 255"),
+	public IReadOnlyList<ColorData> Colors = [
+	new ColorData("aliceblue", "#F0F8FF", "240 248 255"),
 new ColorData("antiquewhite", "#FAEBD7", "250 235 215"),
 new ColorData("aqua", "#00FFFF", "0 255 255"),
 new ColorData("aquamarine", "#7FFFD4", "127 255 212"),
@@ -308,29 +308,29 @@ new ColorData("whitesmoke", "#F5F5F5", "245 245 245"),
 new ColorData("yellow", "#FFFF00", "255 255 0"),
 new ColorData("yellowgreen", "#9ACD32", "154 205 50"),
 new ColorData("transparent", null, null),
-    ];
+	];
 
-    public readonly SystemColor[] SystemColors = new SystemColor[]
+	public readonly SystemColor[] SystemColors = new SystemColor[]
 {
-    new("AccentColor", "Background of accented user interface controls"),
-    new("AccentColorText", "Text of accented user interface controls"),
-    new("ActiveText", "Text of active links"),
-    new("ButtonBorder", "Base border color of controls"),
-    new("ButtonFace", "Background color of controls"),
-    new("ButtonText", "Text color of controls"),
-    new("Canvas", "Background of application content or documents"),
-    new("CanvasText", "Text color in application content or documents"),
-    new("Field", "Background of input fields"),
-    new("FieldText", "Text in input fields"),
-    new("GrayText", "Text color for disabled items (e.g. a disabled control)"),
-    new("Highlight", "Background of selected items"),
-    new("HighlightText", "Text color of selected items"),
-    new("LinkText", "Text of non-active, non-visited links"),
-    new("Mark", "Background of text that has been specially marked (such as by the HTML mark element)"),
-    new("MarkText", "Text that has been specially marked (such as by the HTML mark element)"),
-    new("SelectedItem", "Background of selected items, for example, a selected checkbox"),
-    new("SelectedItemText", "Text of selected items"),
-    new("VisitedText", "Text of visited links")
+	new("AccentColor", "Background of accented user interface controls"),
+	new("AccentColorText", "Text of accented user interface controls"),
+	new("ActiveText", "Text of active links"),
+	new("ButtonBorder", "Base border color of controls"),
+	new("ButtonFace", "Background color of controls"),
+	new("ButtonText", "Text color of controls"),
+	new("Canvas", "Background of application content or documents"),
+	new("CanvasText", "Text color in application content or documents"),
+	new("Field", "Background of input fields"),
+	new("FieldText", "Text in input fields"),
+	new("GrayText", "Text color for disabled items (e.g. a disabled control)"),
+	new("Highlight", "Background of selected items"),
+	new("HighlightText", "Text color of selected items"),
+	new("LinkText", "Text of non-active, non-visited links"),
+	new("Mark", "Background of text that has been specially marked (such as by the HTML mark element)"),
+	new("MarkText", "Text that has been specially marked (such as by the HTML mark element)"),
+	new("SelectedItem", "Background of selected items, for example, a selected checkbox"),
+	new("SelectedItemText", "Text of selected items"),
+	new("VisitedText", "Text of visited links")
 };
 }
 
@@ -352,50 +352,67 @@ public record class PseudoElementData(string Name, string Description);
 
 public record class CssWebDataIndex(CssWebData Data)
 {
-    public IReadOnlyList<string> VendorPrefixes { get; } = ["-moz-", "-o-", "-ms-", "-webkit-"];
+	public IReadOnlyList<string> VendorPrefixes { get; } = ["-moz-", "-o-", "-ms-", "-webkit-"];
 
 
-    public IReadOnlyDictionary<string, PropertyData> Properties { get; } = Data.Properties.ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
+	public IReadOnlyDictionary<string, PropertyData> Properties { get; } = Data.Properties.ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
 
-    public IReadOnlyList<PropertyData> PropertiesSorted { get; } = Data.Properties.OrderBy(p => p.Name).ToList();
-
-
-    public IReadOnlyDictionary<string, PseudoClassData> PseudoClasses { get; } = Data.PseudoClasses.ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
-
-    public IReadOnlyList<PseudoClassData> PseudoClassesSorted { get; } = Data.PseudoClasses.OrderBy(p => p.Name.TrimEnd('(', ')')).ToList();
+	public IReadOnlyList<PropertyData> PropertiesSorted { get; } = Data.Properties.OrderBy(p => p.Name).ToList();
 
 
-    public IReadOnlyDictionary<string, PseudoElementData> PseudoElements { get; } = Data.PseudoElements.ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
-
-    public IReadOnlyList<PseudoElementData> PseudoElementsSorted { get; } = Data.PseudoElements.OrderBy(p => p.Name).ToList();
-
-
-    public IReadOnlyList<ColorData> NamedColorsSorted { get; } = Data.Colors.OrderBy(c => c.Name).ToList();
-
-    public IReadOnlyDictionary<string, ColorData> NamedColors { get; } = Data.Colors.ToDictionary(c => c.Name, c => c, StringComparer.OrdinalIgnoreCase);
-
-
-    public IReadOnlyList<SystemColor> SystemColorsSorted { get; } = Data.SystemColors.OrderBy(c => c.Name).ToList();
-
-    public IReadOnlyDictionary<string, SystemColor> SystemColors { get; } = Data.SystemColors.ToDictionary(c => c.Name, c => c, StringComparer.OrdinalIgnoreCase);
-
-
-    public IReadOnlyList<string> ValueKeywordsSorted { get; } = Data.Keywords.OrderBy(c => c).ToList();
-
-    public ISet<string> ValueKeywordsSet { get; } = Data.Keywords.ToHashSet(StringComparer.OrdinalIgnoreCase);
+	public IReadOnlyList<PropertyData> FontFacePropertiesSorted { get; } = Data.Properties.Where(p => p.Name is
+		"ascent-override" or
+		"descent-override" or
+		"font-display" or
+		"font-family" or
+		"font-stretch" or
+		"font-style" or
+		"font-weight" or
+		"font-feature-settings" or
+		"font-variation-settings" or
+		"line-gap-override" or
+		"size-adjust" or
+		"src" or
+		"unicode-range"
+	).OrderBy(p => p.Name).ToList();
 
 
-    public IReadOnlyList<DirectiveData> DirectivesSorted { get; } = Data.AtDirectives.OrderBy(c => c.Name).ToList();
+	public IReadOnlyDictionary<string, PseudoClassData> PseudoClasses { get; } = Data.PseudoClasses.ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
 
-    public ISet<string> DirectiveKeywordsSet { get; } = Data.AtDirectives.Select(d => d.Name).ToHashSet();
-
-
-    public IReadOnlyList<string> FunctionNamesSorted { get; } = Data.Functions.OrderBy(c => c).ToList();
-
-    public ISet<string> FunctionNamesSet { get; } = Data.Functions.ToHashSet(StringComparer.OrdinalIgnoreCase);
+	public IReadOnlyList<PseudoClassData> PseudoClassesSorted { get; } = Data.PseudoClasses.OrderBy(p => p.Name.TrimEnd('(', ')')).ToList();
 
 
-    public IReadOnlyList<string> ValueUnitsSorted { get; } = Data.Units.OrderBy(c => c).ToList();
+	public IReadOnlyDictionary<string, PseudoElementData> PseudoElements { get; } = Data.PseudoElements.ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
 
-    public ISet<string> ValueUnitsSet { get; } = Data.Units.ToHashSet(StringComparer.OrdinalIgnoreCase);
+	public IReadOnlyList<PseudoElementData> PseudoElementsSorted { get; } = Data.PseudoElements.OrderBy(p => p.Name).ToList();
+
+
+	public IReadOnlyList<ColorData> NamedColorsSorted { get; } = Data.Colors.OrderBy(c => c.Name).ToList();
+
+	public IReadOnlyDictionary<string, ColorData> NamedColors { get; } = Data.Colors.ToDictionary(c => c.Name, c => c, StringComparer.OrdinalIgnoreCase);
+
+
+	public IReadOnlyList<SystemColor> SystemColorsSorted { get; } = Data.SystemColors.OrderBy(c => c.Name).ToList();
+
+	public IReadOnlyDictionary<string, SystemColor> SystemColors { get; } = Data.SystemColors.ToDictionary(c => c.Name, c => c, StringComparer.OrdinalIgnoreCase);
+
+
+	public IReadOnlyList<string> ValueKeywordsSorted { get; } = Data.Keywords.OrderBy(c => c).ToList();
+
+	public ISet<string> ValueKeywordsSet { get; } = Data.Keywords.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+
+	public IReadOnlyList<DirectiveData> DirectivesSorted { get; } = Data.AtDirectives.OrderBy(c => c.Name).ToList();
+
+	public ISet<string> DirectiveKeywordsSet { get; } = Data.AtDirectives.Select(d => d.Name).ToHashSet();
+
+
+	public IReadOnlyList<string> FunctionNamesSorted { get; } = Data.Functions.OrderBy(c => c).ToList();
+
+	public ISet<string> FunctionNamesSet { get; } = Data.Functions.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+
+	public IReadOnlyList<string> ValueUnitsSorted { get; } = Data.Units.OrderBy(c => c).ToList();
+
+	public ISet<string> ValueUnitsSet { get; } = Data.Units.ToHashSet(StringComparer.OrdinalIgnoreCase);
 }

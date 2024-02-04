@@ -1,22 +1,12 @@
-﻿using EditorTest.Data;
-using EditorTest.Syntax;
+﻿using Css.Data;
+using Css.Syntax;
 using System;
+using System.Xml.Linq;
 
-namespace EditorTest.Diagnostics;
+namespace Css.Diagnostics;
 
 public class DiagnosticsVisitor(Action<Diagnostic> report) : SyntaxLocatorWalker
 {
-    public override void Visit(PropertyNameSyntax node)
-    {
-        var name = node.NameToken.Value;
-        if (!name.StartsWith("--", StringComparison.Ordinal) && !CssWebData.Index.Properties.ContainsKey(name))
-        {
-            Report(node.NameToken, "1", Severity.Warning, $"Property '{name}' is unknown.", offset: node.LeadingTrivia.Width());
-        }
-        
-        base.Visit(node);
-    }
-
     public override void Visit(ElementSelectorSyntax node)
     {
         var name = node.NameToken.Value;
@@ -190,8 +180,30 @@ public class DiagnosticsVisitor(Action<Diagnostic> report) : SyntaxLocatorWalker
     }
 
     public override void Visit(PropertySyntax node)
-    {
-        if (node.SemicolonToken.IsMissing())
+	{
+		var name = node.NameToken.Value;
+		switch (Peek())
+        {
+            case FontFaceDirectiveSyntax:
+                {
+					if (!CssWebData.Index.FontFacePropertiesSorted.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+					{
+						Report(node.NameToken, "1", Severity.Warning, $"Property '{name}' is not allowed in this context.", offset: node.LeadingTrivia.Width());
+					}
+				}
+                break;
+
+            default:
+                {
+					if (!name.StartsWith("--", StringComparison.Ordinal) && !CssWebData.Index.Properties.ContainsKey(name))
+					{
+						Report(node.NameToken, "1", Severity.Warning, $"Property '{name}' is unknown.", offset: node.LeadingTrivia.Width());
+					}
+				}
+                break;
+        }
+
+		if (node.SemicolonToken.IsMissing())
         {
             ReportAfter(node, "1", Severity.Error, $"Semicolon is missing.");
         }

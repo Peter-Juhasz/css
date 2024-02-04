@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 
-namespace EditorTest.Data;
+namespace Css.Data;
 
 public record class HtmlElementData(string Name, DescriptionData Description, IReadOnlyList<HtmlAttributeData> Attributes);
 public record class HtmlAttributeData(string Name, DescriptionData Description, string? ValueSet);

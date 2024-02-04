@@ -1,11 +1,11 @@
-﻿using EditorTest.Extensions;
-using EditorTest.Syntax;
+﻿using Css.Extensions;
+using Css.Syntax;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
 
-namespace EditorTest.CodeCompletion;
+namespace Css.Hosting.VisualStudio.CodeCompletion;
 
 internal class CssCompletionSet : CompletionSet2
 {

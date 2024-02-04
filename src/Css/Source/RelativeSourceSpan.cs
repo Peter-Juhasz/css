@@ -1,4 +1,4 @@
-﻿using EditorTest.Syntax;
+﻿using Css.Syntax;
 
 namespace Css.Source;
 

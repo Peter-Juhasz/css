@@ -1,8 +1,8 @@
-﻿using EditorTest.Syntax;
+﻿using Css.Syntax;
 using Microsoft.VisualStudio.Text;
 using System;
 
-namespace EditorTest;
+namespace Css;
 
 internal sealed class SyntaxTreeCache(int size = 3)
 {

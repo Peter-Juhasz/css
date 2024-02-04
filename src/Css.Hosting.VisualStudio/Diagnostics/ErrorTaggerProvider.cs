@@ -1,4 +1,5 @@
-﻿using EditorTest.Syntax;
+﻿using Css.Diagnostics;
+using Css.Syntax;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -8,7 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 
-namespace EditorTest.Diagnostics;
+namespace Css.Hosting.VisualStudio.Diagnostics;
 
 [Export(typeof(ITaggerProvider))]
 [TagType(typeof(IErrorTag))]

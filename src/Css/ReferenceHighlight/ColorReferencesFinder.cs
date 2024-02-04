@@ -1,8 +1,8 @@
 ﻿using Css.Source;
-using EditorTest.Data;
+using Css.Data;
 using System;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public class ColorReferencesFinder(ColorData color, Action<SourceSpan> found) : SyntaxLocatorWalker
 {
@@ -22,7 +22,7 @@ public class ColorReferencesFinder(ColorData color, Action<SourceSpan> found) : 
     public override void Visit(PropertySyntax node)
     {
         var isVariable = node.IsVariable;
-        var canContainColorByDefinition = CssWebData.Index.Properties.TryGetValue(node.NameSyntax.NameToken.Value, out var definition) &&
+        var canContainColorByDefinition = CssWebData.Index.Properties.TryGetValue(node.NameToken.Value, out var definition) &&
             definition.Restrictions != null && definition.Restrictions.Contains("color");
         var match = isVariable || canContainColorByDefinition;
 

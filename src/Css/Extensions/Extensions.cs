@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace EditorTest.Extensions;
+namespace Css.Extensions;
 
 
 public static partial class ReadOnlyListExtensions

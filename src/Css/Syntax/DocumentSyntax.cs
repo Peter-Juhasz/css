@@ -1,11 +1,11 @@
 ﻿using Css.Source;
-using EditorTest.Extensions;
+using Css.Extensions;
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public abstract record class AbstractSyntaxNode()
 {
@@ -38,7 +38,7 @@ public abstract record class SyntaxNode() : AbstractSyntaxNode()
         }
     }
 
-    protected abstract int ChildrenWidth { get; }
+    public abstract int InnerWidth { get; }
 
     private int _width = -1;
     public override int Width
@@ -54,24 +54,24 @@ public abstract record class SyntaxNode() : AbstractSyntaxNode()
         }
     }
 
-    private void CacheWidth() => _width = LeadingTrivia.Width() + ChildrenWidth + TrailingTrivia.Width();
+    private void CacheWidth() => _width = LeadingTrivia.Width() + InnerWidth + TrailingTrivia.Width();
 }
 
 public abstract record class RootSyntax() : SyntaxNode;
 
 public record class DocumentSyntax(SyntaxList<SyntaxNode> Declarations) : RootSyntax
 {
-    protected override int ChildrenWidth => Declarations.Width;
+    public override int InnerWidth => Declarations.Width;
 }
 
 public record class InlineDocumentSyntax(SyntaxList<PropertySyntax> Properties) : RootSyntax
 {
-    protected override int ChildrenWidth => Properties.Width;
+    public override int InnerWidth => Properties.Width;
 }
 
 public record class RuleDeclarationSyntax(SelectorListSyntax Selectors, SyntaxToken OpenBrace, SyntaxList<SyntaxNode> Nodes, SyntaxToken CloseBrace) : SyntaxNode
 {
-    protected override int ChildrenWidth => Selectors.Width + OpenBrace.Width + Nodes.Width + CloseBrace.Width;
+    public override int InnerWidth => Selectors.Width + OpenBrace.Width + Nodes.Width + CloseBrace.Width;
 }
 
 public abstract record class DirectiveSyntax(KeywordToken KeywordToken) : SyntaxNode
@@ -79,20 +79,37 @@ public abstract record class DirectiveSyntax(KeywordToken KeywordToken) : Syntax
 
 }
 
-public record class ImportDirectiveSyntax(KeywordToken KeywordToken, WhiteSpaceTrivia Delimiter, StringToken PathToken, PunctationToken SemicolonToken) : DirectiveSyntax(KeywordToken)
+public abstract record class SimpleDirectiveSyntax(KeywordToken KeywordToken) : DirectiveSyntax(KeywordToken)
 {
-	protected override int ChildrenWidth => KeywordToken.Width + Delimiter.Width + PathToken.Width + SemicolonToken.Width;
+
 }
 
-public record class CharsetDirectiveSyntax(KeywordToken KeywordToken, WhiteSpaceTrivia Delimiter, StringToken CharsetToken, PunctationToken SemicolonToken) : DirectiveSyntax(KeywordToken)
+public abstract record class ComplexDirectiveSyntax(KeywordToken KeywordToken, PunctationToken OpenBrace, PunctationToken CloseBrace) : DirectiveSyntax(KeywordToken)
 {
-    protected override int ChildrenWidth => KeywordToken.Width + Delimiter.Width + CharsetToken.Width + SemicolonToken.Width;
+
 }
 
-public record class SpeculativeDirectiveSyntax(KeywordToken KeywordToken) : DirectiveSyntax(KeywordToken)
+public record class ImportDirectiveSyntax(KeywordToken KeywordToken, WhiteSpaceTrivia Delimiter, StringToken PathToken, PunctationToken SemicolonToken) : SimpleDirectiveSyntax(KeywordToken)
 {
-	protected override int ChildrenWidth => KeywordToken.Width;
+	public override int InnerWidth => KeywordToken.Width + Delimiter.Width + PathToken.Width + SemicolonToken.Width;
 }
+
+public record class CharsetDirectiveSyntax(KeywordToken KeywordToken, WhiteSpaceTrivia Delimiter, StringToken CharsetToken, PunctationToken SemicolonToken) : SimpleDirectiveSyntax(KeywordToken)
+{
+    public override int InnerWidth => KeywordToken.Width + Delimiter.Width + CharsetToken.Width + SemicolonToken.Width;
+}
+
+public record class SpeculativeDirectiveSyntax(KeywordToken KeywordToken) : SimpleDirectiveSyntax(KeywordToken)
+{
+	public override int InnerWidth => KeywordToken.Width;
+}
+
+public record class FontFaceDirectiveSyntax(KeywordToken KeywordToken, PunctationToken OpenBrace, SyntaxList<PropertySyntax> Properties, PunctationToken CloseBrace) : ComplexDirectiveSyntax(KeywordToken, OpenBrace, CloseBrace)
+{
+	public override int InnerWidth => KeywordToken.Width + OpenBrace.Width + Properties.Width + CloseBrace.Width;
+}
+
+
 
 public abstract record class SimpleSelectorSyntax : SyntaxNode
 {
@@ -101,7 +118,7 @@ public abstract record class SimpleSelectorSyntax : SyntaxNode
 
 public record class ElementSelectorSyntax(IdentifierToken NameToken) : SimpleSelectorSyntax
 {
-    protected override int ChildrenWidth => NameToken.Width;
+    public override int InnerWidth => NameToken.Width;
 }
 
 public record class AttributeSelectorSyntax(
@@ -112,173 +129,55 @@ public record class AttributeSelectorSyntax(
     PunctationToken CloseBracketToken
 ) : SimpleSelectorSyntax
 {
-    protected override int ChildrenWidth => OpenBracketToken.Width + NameToken.Width + (OperatorToken?.Width ?? 0) + (ValueToken?.Width ?? 0) + CloseBracketToken.Width;
+    public override int InnerWidth => OpenBracketToken.Width + NameToken.Width + (OperatorToken?.Width ?? 0) + (ValueToken?.Width ?? 0) + CloseBracketToken.Width;
 }
 
 public record class UniversalSelectorSyntax(PunctationToken StarToken) : SimpleSelectorSyntax
 {
-    protected override int ChildrenWidth => StarToken.Width;
+    public override int InnerWidth => StarToken.Width;
 }
 
 public record class NestingSelectorSyntax(PunctationToken AmpersandToken) : SimpleSelectorSyntax
 {
-    protected override int ChildrenWidth => AmpersandToken.Width;
+    public override int InnerWidth => AmpersandToken.Width;
 }
 
-public record class PropertySyntax(PropertyNameSyntax NameSyntax, PunctationToken ColonToken, PropertyValueSyntax ValueSyntax, PunctationToken SemicolonToken) : SyntaxNode
+public record class PropertySyntax(IdentifierToken NameToken, PunctationToken ColonToken, PropertyValueSyntax ValueSyntax, PunctationToken SemicolonToken) : SyntaxNode
 {
-    protected override int ChildrenWidth => NameSyntax.Width + ColonToken.Width + ValueSyntax.Width + SemicolonToken.Width;
+    public override int InnerWidth => NameToken.Width + ColonToken.Width + ValueSyntax.Width + SemicolonToken.Width;
 
-    public bool IsVariable => NameSyntax.NameToken.Value.StartsWith("--", StringComparison.Ordinal);
+    public bool IsVariable => NameToken.Value.StartsWith("--", StringComparison.Ordinal);
+
+	public RelativeSourceSpan GetNameSpan() => new(this, LeadingTrivia.Width() + NameToken.LeadingTrivia.Width(), NameToken.InnerWidth);
 }
 
-public record class PropertyNameSyntax(IdentifierToken NameToken) : SyntaxNode
-{
-    protected override int ChildrenWidth => NameToken.Width;
-
-    public RelativeSourceSpan GetNameSpan() => new(this, LeadingTrivia.Width(), NameToken.Width);
-}
-
-public abstract record class ExpressionSyntax : SyntaxNode
-{
-
-}
-
-public record class NumberExpressionSyntax(NumberToken NumberToken) : ExpressionSyntax
-{
-    protected override int ChildrenWidth => NumberToken.Width;
-}
-
-public record class NumberWithUnitSyntax(NumberToken NumberToken, UnitToken UnitToken) : ExpressionSyntax
-{
-    protected override int ChildrenWidth => NumberToken.Width + UnitToken.Width;
-
-    public RelativeSourceSpan GetUnitSpan() => new(this, LeadingTrivia.Width() + NumberToken.Width, UnitToken.Width);
-}
-
-public record class IdentifierExpressionSyntax(IdentifierToken NameToken) : ExpressionSyntax
-{
-    protected override int ChildrenWidth => NameToken.Width;
-}
-
-public record class HexColorExpressionSyntax(HexColorToken ColorToken) : ExpressionSyntax
-{
-    protected override int ChildrenWidth => ColorToken.Width;
-}
-
-public record class StringExpressionSyntax(StringToken Token) : ExpressionSyntax
-{
-    protected override int ChildrenWidth => Token.Width;
-}
-
-public record class FunctionCallExpressionSyntax(IdentifierToken NameToken, PunctationToken OpenParenthesisToken, FunctionArgumentListSyntax ArgumentListSyntax, PunctationToken CloseParenthesisToken) : ExpressionSyntax
-{
-    protected override int ChildrenWidth => NameToken.Width + OpenParenthesisToken.Width + ArgumentListSyntax.Width + CloseParenthesisToken.Width;
-}
-
-
-public record class SyntaxToken(string Text) : AbstractSyntaxNode
-{
-    public override int Width => Text.Length;
-
-    public override void WriteTo(TextWriter writer) => writer.Write(Text);
-}
-
-public record class IdentifierToken(string Text) : SyntaxToken(Text)
-{
-    public virtual string Value => Text;
-}
-
-public abstract record class LiteralToken(string Text) : SyntaxToken(Text)
-{
-    public abstract string Value { get; }
-}
-
-public record class KeywordToken(string Name) : SyntaxToken(Name);
-
-public abstract record class StringToken(string Text) : LiteralToken(Text);
-
-public record class ImplicitStringToken(string Text) : StringToken(Text)
-{
-    public override string Value => Text;
-}
-
-public record class QuotedStringToken(string Text) : StringToken(Text)
-{
-    public override string Value => IsClosed ? Text[1..^1] : Text[1..];
-
-    public char Quote => Text[0];
-
-    public bool IsClosed => Text.Length > 1 && Text[^1] == Quote;
-}
-
-public record class PunctationToken(string Text) : SyntaxToken(Text);
-
-public record class OperatorToken(string Text) : SyntaxToken(Text);
-
-public record class NumberToken(string Text) : LiteralToken(Text)
-{
-    public override string Value => Text;
-}
-
-public record class HexColorToken(string Text) : LiteralToken(Text)
-{
-    public override string Value => Text;
-}
-
-public record class UnitToken(string Text) : SyntaxToken(Text);
 
 public record class IdSelectorSyntax(PunctationToken HashToken, IdentifierToken NameToken) : SimpleSelectorSyntax
 {
-    protected override int ChildrenWidth => HashToken.Width + NameToken.Width;
+    public override int InnerWidth => HashToken.Width + NameToken.Width;
 }
 
 public record class ClassSelectorSyntax(PunctationToken DotToken, IdentifierToken NameToken) : SimpleSelectorSyntax
 {
-    protected override int ChildrenWidth => DotToken.Width + NameToken.Width;
+    public override int InnerWidth => DotToken.Width + NameToken.Width;
 }
 
 public record class PseudoClassSelectorSyntax(PunctationToken ColonToken, IdentifierToken NameToken) : SimpleSelectorSyntax
 {
-    protected override int ChildrenWidth => ColonToken.Width + NameToken.Width;
+    public override int InnerWidth => ColonToken.Width + NameToken.Width;
 }
 
 public record class PseudoElementSelectorSyntax(PunctationToken ColonsToken, IdentifierToken NameToken) : SimpleSelectorSyntax
 {
-    protected override int ChildrenWidth => ColonsToken.Width + NameToken.Width;
+    public override int InnerWidth => ColonsToken.Width + NameToken.Width;
 }
 
 
-public record class SyntaxTrivia(string Text) : AbstractSyntaxNode
-{
-    public override int Width => Text.Length;
-
-    public override void WriteTo(TextWriter writer) => writer.Write(Text);
-}
-
-public record class WhiteSpaceTrivia(string Text) : SyntaxTrivia(Text);
-
-public abstract record class CommentTrivia(string Text) : SyntaxTrivia(Text)
-{
-    public abstract string Value { get; }
-}
-
-public record class SingleLineCommentTrivia(string Text) : CommentTrivia(Text)
-{
-    public override string Value => Text[2..];
-}
-
-public record class MultiLineCommentTrivia(string Text) : CommentTrivia(Text)
-{
-    public override string Value => Text.EndsWith("*/", StringComparison.Ordinal) ? Text[2..^2] : Text[2..];
-
-    public bool IsClosed => Text.EndsWith("*/", StringComparison.Ordinal);
-}
 
 
 public record class SyntaxList<TSyntax>(IImmutableList<TSyntax> Items) : SyntaxNode() where TSyntax : AbstractSyntaxNode
 {
-    protected override int ChildrenWidth => Items.Sum(i => i.Width);
+    public override int InnerWidth => Items.Sum(i => i.Width);
 
     public override void WriteTo(TextWriter writer)
     {
@@ -292,7 +191,7 @@ public record class SyntaxList<TSyntax>(IImmutableList<TSyntax> Items) : SyntaxN
 
 public record class SeparatedSyntaxList<TSyntax>(IImmutableList<AbstractSyntaxNode> NodesAndSeparators) : SyntaxList<AbstractSyntaxNode>(NodesAndSeparators) where TSyntax : SyntaxNode
 {
-    protected override int ChildrenWidth => Items.Sum(i => i.Width);
+    public override int InnerWidth => Items.Sum(i => i.Width);
 
     public TSyntax this[int index] => (TSyntax)NodesAndSeparators[index / 2];
 

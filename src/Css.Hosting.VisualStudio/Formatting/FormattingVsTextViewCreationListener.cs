@@ -1,7 +1,7 @@
 ﻿using Css.Formatting;
 using Css.Source;
-using EditorTest.Extensions;
-using EditorTest.Syntax;
+using Css.Extensions;
+using Css.Syntax;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -16,7 +16,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace EditorTest.CodeCompletion;
+namespace Css.Hosting.VisualStudio.CodeCompletion;
 
 [Export(typeof(IVsTextViewCreationListener))]
 [ContentType(EditorClassifier1.ContentType)]

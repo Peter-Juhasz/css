@@ -1,5 +1,5 @@
-﻿using EditorTest.Data;
-using EditorTest.Syntax;
+﻿using Css.Data;
+using Css.Syntax;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -12,7 +12,7 @@ using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace EditorTest.Outlining;
+namespace Css.Hosting.VisualStudio.Outlining;
 
 [Export(typeof(ITaggerProvider))]
 [TagType(typeof(IntraTextAdornmentTag))]

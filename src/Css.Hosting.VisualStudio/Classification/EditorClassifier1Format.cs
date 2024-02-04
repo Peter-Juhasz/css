@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using System.Windows.Media;
 
-namespace EditorTest
+namespace Css.Hosting.VisualStudio
 {
     /// <summary>
     /// Defines an editor format for the EditorClassifier1 type that has a purple background

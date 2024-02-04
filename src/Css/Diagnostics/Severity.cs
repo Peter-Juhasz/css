@@ -1,4 +1,4 @@
-﻿namespace EditorTest.Diagnostics;
+﻿namespace Css.Diagnostics;
 
 public enum Severity
 {

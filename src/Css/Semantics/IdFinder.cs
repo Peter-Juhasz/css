@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public class IdFinder(Action<string> found) : SyntaxLocatorWalker
 {

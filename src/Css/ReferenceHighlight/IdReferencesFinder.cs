@@ -1,7 +1,7 @@
 ﻿using Css.Source;
 using System;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public class IdReferencesFinder(string name, Action<SourceSpan> found) : SyntaxLocatorWalker
 {

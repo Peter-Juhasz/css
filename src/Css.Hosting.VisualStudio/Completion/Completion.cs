@@ -1,6 +1,6 @@
-﻿using EditorTest.Data;
-using EditorTest.Extensions;
-using EditorTest.Syntax;
+﻿using Css.Data;
+using Css.Extensions;
+using Css.Syntax;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -10,8 +10,9 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Windows.Media;
+using Css.Source;
 
-namespace EditorTest.CodeCompletion;
+namespace Css.Hosting.VisualStudio.CodeCompletion;
 
 [Export(typeof(ICompletionSourceProvider))]
 [ContentType(EditorClassifier1.ContentType)]
@@ -76,10 +77,10 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
             SyntaxTree syntaxTree = snapshot.GetSyntaxTree();
             var matches = syntaxTree.FindNodeAt(triggerPoint.Value.Position);
 
+            var sourceTriggerPoint = triggerPoint.Value.ToSourcePoint();
             var builder = new CssCompletionsBuilder();
-            Process(matches, m => TryAddProperties(snapshot, syntaxTree, m, builder));
-            Process(matches, m => TryAddHtmlElements(snapshot, syntaxTree, m, builder));
-            Process(matches, m => TryAddVariables(snapshot, syntaxTree, m, builder));
+            Process(matches, m => TryCompletePropertyName(snapshot, syntaxTree, m, sourceTriggerPoint, builder));
+            Process(matches, m => TryCompleteElementSelector(snapshot, syntaxTree, m, builder));
             Process(matches, m => TryAddKeywords(snapshot, syntaxTree, m, builder));
             Process(matches, m => TryCompleteUnits(snapshot, syntaxTree, m, triggerPoint.Value, builder));
             Process(matches, m => TryAddFunctions(snapshot, syntaxTree, m, builder));
@@ -124,44 +125,79 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
             return true;
         }
 
-        private bool TryAddProperties(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
+        private bool TryCompletePropertyName(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, CssCompletionsBuilder builder)
         {
-            if (node.Node is PropertyNameSyntax propertyName)
+            if (node.Node is not PropertySyntax syntax)
             {
-                if (_properties == null)
-                {
-                    _properties = CssWebData.Index.PropertiesSorted.Select(p => ToCompletion(p)).ToList();
-                }
-
-                var span = new Span(node.Position + propertyName.LeadingTrivia.Width(), propertyName.NameToken.Width);
-                var trackingSpan = snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
-                builder.SetSpan(trackingSpan);
-                builder.AddFilter(new IntellisenseFilter(KnownMonikers.Property, "Properties", "P", "Properties"));
-                builder.Add(_properties);
-                return true;
+                return false;
             }
 
-            //if (node.Node is ElementSelectorSyntax element)
-            //{
-            //    if (!node.TryFindFirstAncestorUpwards<RuleDeclarationSyntax>(out var rule) ||
-            //        rule.Selectors is not { Items: [ CombinatorSyntax { Items: [ CompoundSelectorSyntax { Selectors: [ ElementSelectorSyntax ] } ] } ] })
-            //    {
-            //        return false;
-            //    }
+            if (!syntax.GetNameSpan().ToAbsolute(node.Position).Contains(point))
+            {
+                return false;
+            }
 
-            //    if (_properties == null)
-            //    {
-            //        _properties = CssWebData.Index.PropertiesSorted.Select(p => ToCompletion(p)).ToList();
-            //    }
+            // basic properties
+            if (_properties == null)
+            {
+                _properties = CssWebData.Index.PropertiesSorted.Select(ToCompletion).ToList();
+            }
+            var effective = _properties;
 
-            //    var span = new Span(node.Position + element.LeadingTrivia.Width(), element.NameToken.Width);
-            //    var trackingSpan = snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
-            //    var set = new CompletionSet("CSS", "CSS", trackingSpan, _properties, Enumerable.Empty<Completion>());
-            //    completions.Add(set);
-            //    return true;
-            //}
+            // font-face
+            if (node.TryFindFirstAncestorUpwards<FontFaceDirectiveSyntax>(out _))
+			{
+				effective = CssWebData.Index.FontFacePropertiesSorted.Select(ToCompletion).ToList();
+			}
 
-            return false;
+            var span = syntax.GetNameSpan().ToAbsolute(node.Position).ToSpan();
+            var trackingSpan = snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
+            builder.SetSpan(trackingSpan);
+            builder.AddFilter(new IntellisenseFilter(KnownMonikers.Property, "Properties", "P", "Properties"));
+            builder.Add(effective);
+
+            // in regular context
+			if (!node.TryFindFirstAncestorUpwards<FontFaceDirectiveSyntax>(out _))
+            {
+			    // add variables
+				var variables = new Dictionary<string, Completion>();
+				var finder = new VariableDefinitionFinder(n =>
+				{
+					if (n.Position == node.Position)
+					{
+						return;
+					}
+
+					var nameToken = (IdentifierToken)n.Node;
+					var name = nameToken.Value;
+					if (variables.ContainsKey(name))
+					{
+						return;
+					}
+
+					var completion = new Completion(name, name, null, _variableGlyph, null);
+					variables.Add(name, completion);
+				});
+				finder.Visit(syntaxTree);
+
+				builder.EnableVariableCompletionBuilder = true;
+				builder.AddFilter(new IntellisenseFilter(KnownMonikers.LocalVariable, "Variables", "V", "Variables"));
+				builder.Add(variables.Values);
+
+                // add html elements
+                if (syntax.ColonToken.IsMissing())
+                {
+                    if (_elements == null)
+                    {
+						_elements = HtmlWebData.Index.ElementsSorted.Select(ToCompletion).ToList();
+                    }
+
+                    builder.AddFilter(new IntellisenseFilter(KnownMonikers.XMLElement, "Tags", "T", "Tags"));
+                    builder.Add(_elements);
+                }
+			}
+
+			return true;
         }
 
         private bool TryAddPropertiesAsValues(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
@@ -172,7 +208,7 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
             }
 
             if (!node.TryFindFirstAncestorUpwards<PropertySyntax>(out var propertySyntax) ||
-                !CssWebData.Index.Properties.TryGetValue(propertySyntax.NameSyntax.NameToken.Value, out var definition) ||
+                !CssWebData.Index.Properties.TryGetValue(propertySyntax.NameToken.Value, out var definition) ||
                 definition.Restrictions == null || !definition.Restrictions.Contains("property"))
             {
                 return false;
@@ -191,7 +227,7 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
             return true;
         }
 
-        private bool TryAddHtmlElements(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
+        private bool TryCompleteElementSelector(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
         {
             if (node.Node is ElementSelectorSyntax elementSelectorSyntax)
             {
@@ -201,23 +237,6 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
                 }
 
                 var span = new Span(node.Position + elementSelectorSyntax.LeadingTrivia.Width(), elementSelectorSyntax.NameToken.Width);
-                var trackingSpan = snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
-                builder.SetSpan(trackingSpan);
-                builder.AddFilter(new IntellisenseFilter(KnownMonikers.XMLElement, "Tags", "T", "Tags"));
-                builder.Add(_elements);
-                return true;
-            }
-            else if (
-                node.Node is PropertyNameSyntax propertyNameSyntax &&
-                node.TryFindFirstAncestorUpwards<PropertySyntax>(out var propertySyntax) && propertySyntax.ColonToken.IsMissing()
-            )
-            {
-                if (_elements == null)
-                {
-                    _elements = HtmlWebData.Index.ElementsSorted.Select(p => ToCompletion(p)).ToList();
-                }
-
-                var span = new Span(node.Position + propertyNameSyntax.LeadingTrivia.Width(), propertyNameSyntax.NameToken.Width);
                 var trackingSpan = snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
                 builder.SetSpan(trackingSpan);
                 builder.AddFilter(new IntellisenseFilter(KnownMonikers.XMLElement, "Tags", "T", "Tags"));
@@ -483,7 +502,7 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
 
         private bool TryCompleteDirectiveKeywords(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
         {
-            if (node.Node is not DirectiveSyntax directiveSyntax)
+            if (node.Node is not SimpleDirectiveSyntax directiveSyntax)
             {
                 return false;
             }
@@ -532,42 +551,6 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
             var filter = new IntellisenseFilter(KnownMonikers.Method, "Functions", "F", "Functions");
             builder.AddFilter(filter);
             builder.Add(_functions);
-            return true;
-        }
-
-        private bool TryAddVariables(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
-        {
-            if (node.Node is not PropertyNameSyntax propertyName)
-            {
-                return false;
-            }
-
-            var variables = new Dictionary<string, Completion>();
-            var finder = new VariableDefinitionFinder(n =>
-            {
-                if (n.Position == node.Position)
-                {
-                    return;
-                }
-
-                var nameToken = (IdentifierToken)n.Node;
-                var name = nameToken.Value;
-                if (variables.ContainsKey(name))
-                {
-                    return;
-                }
-
-                var completion = new Completion(name, name, null, _variableGlyph, null);
-                variables.Add(name, completion);
-            });
-            finder.Visit(syntaxTree);
-
-            builder.EnableVariableCompletionBuilder = true;
-            var span = new Span(node.Position + propertyName.LeadingTrivia.Width(), propertyName.NameToken.Width);
-            var trackingSpan = snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
-            builder.SetSpan(trackingSpan);
-            builder.AddFilter(new IntellisenseFilter(KnownMonikers.LocalVariable, "Variables", "V", "Variables"));
-            builder.Add(variables.Values);
             return true;
         }
 
@@ -635,7 +618,7 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
                 }
             }
 
-            if (!CssWebData.Index.Properties.TryGetValue(propertySyntax.NameSyntax.NameToken.Value, out var definition))
+            if (!CssWebData.Index.Properties.TryGetValue(propertySyntax.NameToken.Value, out var definition))
             {
                 return false;
             }
@@ -672,7 +655,7 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
                 return false;
             }
 
-            if (!CssWebData.Index.Properties.TryGetValue(propertySyntax.NameSyntax.NameToken.Value, out var definition))
+            if (!CssWebData.Index.Properties.TryGetValue(propertySyntax.NameToken.Value, out var definition))
             {
                 return false;
             }
@@ -709,7 +692,7 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
 
         private bool TryCompleteUnits(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, SnapshotPoint triggerPoint, CssCompletionsBuilder builder)
         {
-            if (node.Node is not NumberWithUnitSyntax propertyName)
+            if (node.Node is not NumberWithUnitExpressionSyntax propertyName)
             {
                 return false;
             }

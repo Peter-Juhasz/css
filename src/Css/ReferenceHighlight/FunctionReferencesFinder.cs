@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public class FunctionReferencesFinder(string name, Action<SnapshotNode<FunctionCallExpressionSyntax>> found) : SyntaxNodeFinder<FunctionCallExpressionSyntax>(found)
 {

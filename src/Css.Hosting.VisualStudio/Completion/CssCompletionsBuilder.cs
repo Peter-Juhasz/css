@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 
-namespace EditorTest.CodeCompletion;
+namespace Css.Hosting.VisualStudio.CodeCompletion;
 
 public class CssCompletionsBuilder
 {

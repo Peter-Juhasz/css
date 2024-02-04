@@ -1,11 +1,12 @@
-﻿using EditorTest.Syntax;
+﻿using Css.SmartIndent;
+using Css.Syntax;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using System;
 using System.ComponentModel.Composition;
 
-namespace EditorTest.SmartIndent;
+namespace Css.Hosting.VisualStudio.SmartIndent;
 
 [Export(typeof(ISmartIndentProvider))]
 [ContentType(EditorClassifier1.ContentType)]

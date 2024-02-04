@@ -1,10 +1,10 @@
-﻿using EditorTest.Data;
+﻿using Css.Data;
 using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public static class SyntaxFactory
 {
@@ -38,7 +38,6 @@ public static class SyntaxFactory
         }
         _whitespaceCache = whitespaceCache;
 
-        _propertyNameSyntaxCache = CssWebData.Index.Properties.Keys.ToDictionary(k => new StringSegment(k), k => new PropertyNameSyntax(new(k)));
         _unitTokenCache = CssWebData.Index.ValueUnitsSorted.ToDictionary(u => new StringSegment(u), u => new UnitToken(u));
 
         // keyword cache
@@ -166,18 +165,6 @@ public static class SyntaxFactory
     }
 
 
-    private static readonly IReadOnlyDictionary<StringSegment, PropertyNameSyntax> _propertyNameSyntaxCache;
-
-    public static PropertyNameSyntax PropertyName(StringSegment text)
-    {
-        if (_propertyNameSyntaxCache.TryGetValue(text, out var syntax))
-        {
-            return syntax;
-        }
-
-        return new(new(text.Value));
-    }
-
     public static NumberExpressionSyntax Number(string text) => new(new(text));
 
     public static StringToken String(string text) => text.Length > 0 && text[0] is '"' or '\'' ? new QuotedStringToken(text) : new ImplicitStringToken(text);
@@ -189,7 +176,7 @@ public static class SyntaxFactory
 
     public static IdentifierExpressionSyntax IdentifierExpression(StringSegment text) => new(Identifier(text));
 
-    public static NumberWithUnitSyntax Number(string text, StringSegment unit) => new(new(text), Unit(unit));
+    public static NumberWithUnitExpressionSyntax Number(string text, StringSegment unit) => new(new(text), Unit(unit));
 
     public static UniversalSelectorSyntax Universal() => _universal;
 

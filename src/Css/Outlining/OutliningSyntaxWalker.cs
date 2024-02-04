@@ -1,10 +1,10 @@
 ﻿using Css.Source;
-using EditorTest.Data;
-using EditorTest.Extensions;
-using EditorTest.Syntax;
+using Css.Data;
+using Css.Extensions;
+using Css.Syntax;
 using System;
 
-namespace EditorTest.Outlining;
+namespace Css.Outlining;
 
 public class OutliningSyntaxWalker(Action<SourceSpan> found) : SyntaxLocatorWalker
 {
@@ -24,7 +24,7 @@ public class OutliningSyntaxWalker(Action<SourceSpan> found) : SyntaxLocatorWalk
                 continue;
             }
 
-            var name = property.NameSyntax.NameToken.Value;
+            var name = property.NameToken.Value;
             var isVariable = name.StartsWith("--", StringComparison.Ordinal);
             var isVendorSpecific = !isVariable && name.StartsWith("-", StringComparison.Ordinal);
             var isVendorContinuation = lastPropertyName != null && CssWebData.Index.VendorPrefixes.Any(p =>

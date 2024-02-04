@@ -1,8 +1,8 @@
-﻿using EditorTest.Syntax;
+﻿using Css.Syntax;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EditorTest.SmartIndent;
+namespace Css.SmartIndent;
 
 public class IndentationWalker(int position) : SyntaxLocatorWalker
 {

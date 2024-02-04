@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public class VariableDefinitionFinder(Action<SnapshotNode<IdentifierToken>> found) : SyntaxNodeFinder<IdentifierToken>(found)
 {

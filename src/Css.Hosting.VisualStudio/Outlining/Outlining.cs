@@ -1,4 +1,5 @@
-﻿using EditorTest.Syntax;
+﻿using Css.Outlining;
+using Css.Syntax;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -7,7 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 
-namespace EditorTest.Outlining;
+namespace Css.Hosting.VisualStudio.Outlining;
 
 [Export(typeof(ITaggerProvider))]
 [TagType(typeof(IOutliningRegionTag))]

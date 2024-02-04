@@ -1,13 +1,13 @@
-﻿using EditorTest.Data;
-using EditorTest.Extensions;
-using EditorTest.Syntax;
+﻿using Css.Data;
+using Css.Extensions;
+using Css.Syntax;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace EditorTest.Classification;
+namespace Css.Hosting.VisualStudio.Classification;
 
 internal class ClassifierSyntaxWalker(SnapshotSpan span, ClassificationRegistry registry) : SyntaxLocatorWalker
 {
@@ -67,9 +67,9 @@ internal class ClassifierSyntaxWalker(SnapshotSpan span, ClassificationRegistry 
 
     public override void Visit(PropertySyntax node)
     {
-        Add(node.NameSyntax.NameToken.Width, registry.PropertyName, node.LeadingTrivia.Width() + node.NameSyntax.LeadingTrivia.Width());
+        Add(node.NameToken.Width, registry.PropertyName, node.LeadingTrivia.Width());
 
-        var propertyName = node.NameSyntax.NameToken.Value;
+        var propertyName = node.NameToken.Value;
         if (Peek() is RuleDeclarationSyntax rule)
         {
             var analyze = false;
@@ -92,7 +92,7 @@ internal class ClassifierSyntaxWalker(SnapshotSpan span, ClassificationRegistry 
                 // find overwrite after
                 if (item is PropertySyntax property)
                 {
-                    if (property.NameSyntax.NameToken.Value.Equals(propertyName, StringComparison.OrdinalIgnoreCase))
+                    if (property.NameToken.Value.Equals(propertyName, StringComparison.OrdinalIgnoreCase))
                     {
                         Add(node.Width, registry.Unnecessary);
                         break;
@@ -142,16 +142,6 @@ internal class ClassifierSyntaxWalker(SnapshotSpan span, ClassificationRegistry 
         Add(node.Width - 2 + (node.Value.EndsWith("*/") ? 2 : 0), registry.NaturalLanguage, offset: 2);
     }
 
-    public override void VisitToken(SyntaxToken token)
-    {
-        if (token.IsMissing())
-        {
-            return;
-        }
-        
-        base.VisitToken(token);
-    }
-
     public override void Visit(CombinatorSyntax node)
     {
         if (node.Items is [CompoundSelectorSyntax { Items: [ UniversalSelectorSyntax, ..] }, ..] or [UniversalSelectorSyntax, ..])
@@ -162,7 +152,7 @@ internal class ClassifierSyntaxWalker(SnapshotSpan span, ClassificationRegistry 
         base.Visit(node);
     }
 
-    public override void Visit(NumberWithUnitSyntax node)
+    public override void Visit(NumberWithUnitExpressionSyntax node)
     {
         if (node.NumberToken.Value == "0")
         {

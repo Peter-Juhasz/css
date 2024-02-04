@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using System.ComponentModel.Composition;
 
-namespace EditorTest
+namespace Css.Hosting.VisualStudio
 {
     /// <summary>
     /// Classification type definition export for classifier

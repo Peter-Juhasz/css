@@ -1,7 +1,7 @@
-﻿using EditorTest.Extensions;
+﻿using Css.Extensions;
 using System;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public class AttributeReferencesFinder(string elementName, string attributeName, Action<SnapshotNode<IdentifierToken>> found) : SyntaxNodeFinder<IdentifierToken>(found)
 {

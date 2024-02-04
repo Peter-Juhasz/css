@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.Text.Tagging;
 
-namespace EditorTest.Diagnostics;
+namespace Css.Hosting.VisualStudio.Diagnostics;
 
 public class DiagnosticErrorTag : ErrorTag
 {

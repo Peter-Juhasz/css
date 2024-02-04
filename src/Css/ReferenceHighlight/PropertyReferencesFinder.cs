@@ -1,9 +1,9 @@
-﻿using EditorTest.Data;
-using EditorTest.Extensions;
+﻿using Css.Data;
+using Css.Extensions;
 using System;
 using System.Linq;
 
-namespace EditorTest.Syntax;
+namespace Css.Syntax;
 
 public class PropertyReferencesFinder : SyntaxNodeFinder<IdentifierToken>
 {
@@ -18,19 +18,14 @@ public class PropertyReferencesFinder : SyntaxNodeFinder<IdentifierToken>
     private readonly string normalizedName;
 
 
-    public override void Visit(PropertyNameSyntax node)
-    {
-        if (Matches(node.NameToken.Value))
-        {
-            Report(node.NameToken, offset: node.LeadingTrivia.Width());
-        }
-
-        base.Visit(node);
-    }
-
     public override void Visit(PropertySyntax node)
-    {
-        if (CssWebData.Index.Properties.TryGetValue(node.NameSyntax.NameToken.Value, out var definition) &&
+	{
+		if (Matches(node.NameToken.Value))
+		{
+			Report(node.NameToken, offset: node.LeadingTrivia.Width());
+		}
+
+		if (CssWebData.Index.Properties.TryGetValue(node.NameToken.Value, out var definition) &&
             definition.Restrictions != null && definition.Restrictions.Contains("property"))
         {
             _searchValues = true;

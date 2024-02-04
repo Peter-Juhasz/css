@@ -6,6 +6,6 @@ public record struct SourceSpan(int Position, int Length)
 
     public readonly int End => Position + Length;
 
-    public readonly bool Contains(SourcePoint point) => Position <= point.Position && point.Position < End;
+    public readonly bool Contains(SourcePoint point) => Position <= point.Position && point.Position <= End;
 }
 
