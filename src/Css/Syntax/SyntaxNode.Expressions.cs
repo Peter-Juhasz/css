@@ -1,6 +1,7 @@
 ﻿using Css.Source;
 using Css.Syntax;
 using System;
+using System.Collections.Immutable;
 using System.IO;
 
 namespace Css.Syntax;
@@ -45,4 +46,9 @@ public record class StringExpressionSyntax(StringToken Token) : ExpressionSyntax
 public record class FunctionCallExpressionSyntax(IdentifierToken NameToken, PunctationToken OpenParenthesisToken, FunctionArgumentListSyntax ArgumentListSyntax, PunctationToken CloseParenthesisToken) : ExpressionSyntax
 {
 	public override int InnerWidth => NameToken.Width + OpenParenthesisToken.Width + ArgumentListSyntax.Width + CloseParenthesisToken.Width;
+}
+
+public record class FunctionArgumentListSyntax(IImmutableList<AbstractSyntaxNode> NodesAndSeparators) : CommaSeparatedSyntaxList<ExpressionSyntax>(NodesAndSeparators)
+{
+	public static readonly FunctionArgumentListSyntax Empty = new(ImmutableList<AbstractSyntaxNode>.Empty);
 }

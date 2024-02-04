@@ -74,41 +74,6 @@ public record class RuleDeclarationSyntax(SelectorListSyntax Selectors, SyntaxTo
     public override int InnerWidth => Selectors.Width + OpenBrace.Width + Nodes.Width + CloseBrace.Width;
 }
 
-public abstract record class DirectiveSyntax(KeywordToken KeywordToken) : SyntaxNode
-{
-
-}
-
-public abstract record class SimpleDirectiveSyntax(KeywordToken KeywordToken) : DirectiveSyntax(KeywordToken)
-{
-
-}
-
-public abstract record class ComplexDirectiveSyntax(KeywordToken KeywordToken, PunctationToken OpenBrace, PunctationToken CloseBrace) : DirectiveSyntax(KeywordToken)
-{
-
-}
-
-public record class ImportDirectiveSyntax(KeywordToken KeywordToken, WhiteSpaceTrivia Delimiter, StringToken PathToken, PunctationToken SemicolonToken) : SimpleDirectiveSyntax(KeywordToken)
-{
-	public override int InnerWidth => KeywordToken.Width + Delimiter.Width + PathToken.Width + SemicolonToken.Width;
-}
-
-public record class CharsetDirectiveSyntax(KeywordToken KeywordToken, WhiteSpaceTrivia Delimiter, StringToken CharsetToken, PunctationToken SemicolonToken) : SimpleDirectiveSyntax(KeywordToken)
-{
-    public override int InnerWidth => KeywordToken.Width + Delimiter.Width + CharsetToken.Width + SemicolonToken.Width;
-}
-
-public record class SpeculativeDirectiveSyntax(KeywordToken KeywordToken) : SimpleDirectiveSyntax(KeywordToken)
-{
-	public override int InnerWidth => KeywordToken.Width;
-}
-
-public record class FontFaceDirectiveSyntax(KeywordToken KeywordToken, PunctationToken OpenBrace, SyntaxList<PropertySyntax> Properties, PunctationToken CloseBrace) : ComplexDirectiveSyntax(KeywordToken, OpenBrace, CloseBrace)
-{
-	public override int InnerWidth => KeywordToken.Width + OpenBrace.Width + Properties.Width + CloseBrace.Width;
-}
-
 
 
 public abstract record class SimpleSelectorSyntax : SyntaxNode
@@ -231,11 +196,6 @@ public record class CombinatorSyntax(IImmutableList<AbstractSyntaxNode> NodesAnd
 public record class PropertyValueSyntax(IImmutableList<AbstractSyntaxNode> NodesAndSeparators) : SpaceSeparatedSyntaxList<ExpressionSyntax>(NodesAndSeparators)
 {
     public static readonly PropertyValueSyntax Empty = new(ImmutableList<AbstractSyntaxNode>.Empty);
-}
-
-public record class FunctionArgumentListSyntax(IImmutableList<AbstractSyntaxNode> NodesAndSeparators) : CommaSeparatedSyntaxList<ExpressionSyntax>(NodesAndSeparators)
-{
-    public static readonly FunctionArgumentListSyntax Empty = new(ImmutableList<AbstractSyntaxNode>.Empty);
 }
 
 public record class CommaSeparatedSyntaxList<TSyntax>(IImmutableList<AbstractSyntaxNode> NodesAndSeparators) : SeparatedSyntaxList<TSyntax>(NodesAndSeparators) where TSyntax : SyntaxNode;

@@ -104,6 +104,8 @@ public abstract class SyntaxWalker
 			case CharsetDirectiveSyntax n: Visit(n); break;
 			case SpeculativeDirectiveSyntax n: Visit(n); break;
 			case FontFaceDirectiveSyntax n: Visit(n); break;
+			case ColorProfileDirectiveSyntax n: Visit(n); break;
+			case PropertyDirectiveSyntax n: Visit(n); break;
 		}
 	}
 
@@ -126,6 +128,34 @@ public abstract class SyntaxWalker
 	{
 		VisitLeadingTrivia(node);
 		VisitToken(node.KeywordToken);
+		VisitToken(node.OpenBrace);
+		foreach (var property in node.Properties.Items.AsValueEnumerable())
+		{
+			Visit(property);
+		}
+		VisitToken(node.CloseBrace);
+		VisitTrailingTrivia(node);
+	}
+
+	public virtual void Visit(ColorProfileDirectiveSyntax node)
+	{
+		VisitLeadingTrivia(node);
+		VisitToken(node.KeywordToken);
+		VisitToken(node.IdentifierToken);
+		VisitToken(node.OpenBrace);
+		foreach (var property in node.Properties.Items.AsValueEnumerable())
+		{
+			Visit(property);
+		}
+		VisitToken(node.CloseBrace);
+		VisitTrailingTrivia(node);
+	}
+
+	public virtual void Visit(PropertyDirectiveSyntax node)
+	{
+		VisitLeadingTrivia(node);
+		VisitToken(node.KeywordToken);
+		VisitToken(node.IdentifierToken);
 		VisitToken(node.OpenBrace);
 		foreach (var property in node.Properties.Items.AsValueEnumerable())
 		{

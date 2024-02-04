@@ -376,6 +376,17 @@ public record class CssWebDataIndex(CssWebData Data)
 		"unicode-range"
 	).OrderBy(p => p.Name).ToList();
 
+	public IReadOnlyList<PropertyData> ColorProfilePropertiesSorted { get; } = Data.Properties.Where(p => p.Name is
+		"src" or
+		"rendering-intent"
+	).OrderBy(p => p.Name).ToList();
+
+	public IReadOnlyList<PropertyData> PropertyPropertiesSorted { get; } = Data.Properties.Where(p => p.Name is
+		"syntax" or
+		"inherits" or
+		"initial-value"
+	).OrderBy(p => p.Name).ToList();
+
 
 	public IReadOnlyDictionary<string, PseudoClassData> PseudoClasses { get; } = Data.PseudoClasses.ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
 

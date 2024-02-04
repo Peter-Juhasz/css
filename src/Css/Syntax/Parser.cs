@@ -456,8 +456,16 @@ public static class Parser
         else if (TryReadFontFaceDirectiveSyntax(segment, out var fontFace))
         {
             syntax = fontFace;
-        }
-        else if (segment.PeekSafe() is '@' && TryReadIdentifier(segment.Subsegment(1), out var keyword))
+		}
+		else if (TryReadColorProfileDirectiveSyntax(segment, out var colorProfile))
+		{
+			syntax = colorProfile;
+		}
+		else if (TryReadPropertyDirectiveSyntax(segment, out var property))
+		{
+			syntax = property;
+		}
+		else if (segment.PeekSafe() is '@' && TryReadIdentifier(segment.Subsegment(1), out var keyword))
         {
             syntax = new SpeculativeDirectiveSyntax(SyntaxFactory.Keyword(segment.Subsegment(0, 1 + keyword.Length)));
         }
@@ -511,6 +519,15 @@ public static class Parser
 			segment = segment.Subsegment(property.Width);
 		}
 
+		if (!list.Any())
+		{
+			if (TryReadTrivia(segment, out var emptyBlockTrivia))
+			{
+				open = open with { TrailingTrivia = emptyBlockTrivia };
+				segment = segment.Subsegment(emptyBlockTrivia.Width());
+			}
+		}
+
 		// close
 		if (TryReadPunctation(segment, '}', out var close))
 		{
@@ -518,6 +535,138 @@ public static class Parser
 		}
 
         syntax = new FontFaceDirectiveSyntax(keyword, open, new SyntaxList<PropertySyntax>(list.ToImmutableList()), close);
+		return true;
+	}
+
+	public static bool TryReadColorProfileDirectiveSyntax(this StringSegment segment, out ColorProfileDirectiveSyntax? syntax)
+	{
+		if (!TryReadExact(segment, "@color-profile", out var read))
+		{
+			syntax = null;
+			return false;
+		}
+		var keyword = SyntaxFactory.Keyword(read);
+		segment = segment.Subsegment(keyword.Width);
+
+        // identifier
+        if (TryReadTrivia(segment, out var leadingTrivia))
+        {
+            segment = segment.Subsegment(leadingTrivia.Width());
+        }
+
+        if (TryReadIdentifier(segment, out var identifier))
+        {
+            segment = segment.Subsegment(identifier.Length);
+        }
+
+        if (TryReadTrivia(segment, out var trailingTrivia))
+        {
+            segment = segment.Subsegment(trailingTrivia.Width());
+        }
+
+        var identifierToken = SyntaxFactory.Identifier(identifier) with { LeadingTrivia = leadingTrivia, TrailingTrivia = trailingTrivia };
+
+		// open
+		if (TryReadPunctation(segment, '{', out var open))
+		{
+			segment = segment.Subsegment(1);
+		}
+
+		var list = new List<PropertySyntax>();
+		while (segment.Any())
+		{
+			// read properties
+			if (!TryReadPropertySyntax(segment, out var property))
+			{
+				break;
+			}
+
+			list.Add(property);
+			segment = segment.Subsegment(property.Width);
+		}
+
+		if (!list.Any())
+		{
+			if (TryReadTrivia(segment, out var emptyBlockTrivia))
+			{
+				open = open with { TrailingTrivia = emptyBlockTrivia };
+                segment = segment.Subsegment(emptyBlockTrivia.Width());
+			}
+		}
+
+		// close
+		if (TryReadPunctation(segment, '}', out var close))
+		{
+			segment = segment.Subsegment(1);
+		}
+
+		syntax = new ColorProfileDirectiveSyntax(keyword, identifierToken, open, new SyntaxList<PropertySyntax>(list.ToImmutableList()), close);
+		return true;
+	}
+
+	public static bool TryReadPropertyDirectiveSyntax(this StringSegment segment, out PropertyDirectiveSyntax? syntax)
+	{
+		if (!TryReadExact(segment, "@property", out var read))
+		{
+			syntax = null;
+			return false;
+		}
+		var keyword = SyntaxFactory.Keyword(read);
+		segment = segment.Subsegment(keyword.Width);
+
+		// identifier
+		if (TryReadTrivia(segment, out var leadingTrivia))
+		{
+			segment = segment.Subsegment(leadingTrivia.Width());
+		}
+
+		if (TryReadIdentifier(segment, out var identifier))
+		{
+			segment = segment.Subsegment(identifier.Length);
+		}
+
+		if (TryReadTrivia(segment, out var trailingTrivia))
+		{
+			segment = segment.Subsegment(trailingTrivia.Width());
+		}
+
+		var identifierToken = SyntaxFactory.Identifier(identifier) with { LeadingTrivia = leadingTrivia, TrailingTrivia = trailingTrivia };
+
+		// open
+		if (TryReadPunctation(segment, '{', out var open))
+		{
+			segment = segment.Subsegment(1);
+		}
+
+		var list = new List<PropertySyntax>();
+		while (segment.Any())
+		{
+			// read properties
+			if (!TryReadPropertySyntax(segment, out var property))
+			{
+				break;
+			}
+
+			list.Add(property);
+			segment = segment.Subsegment(property.Width);
+		}
+
+		if (!list.Any())
+		{
+			if (TryReadTrivia(segment, out var emptyBlockTrivia))
+			{
+				open = open with { TrailingTrivia = emptyBlockTrivia };
+				segment = segment.Subsegment(emptyBlockTrivia.Width());
+			}
+		}
+
+		// close
+		if (TryReadPunctation(segment, '}', out var close))
+		{
+			segment = segment.Subsegment(1);
+		}
+
+		syntax = new PropertyDirectiveSyntax(keyword, identifierToken, open, new SyntaxList<PropertySyntax>(list.ToImmutableList()), close);
 		return true;
 	}
 

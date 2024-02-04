@@ -150,14 +150,26 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
 				effective = CssWebData.Index.FontFacePropertiesSorted.Select(ToCompletion).ToList();
 			}
 
-            var span = syntax.GetNameSpan().ToAbsolute(node.Position).ToSpan();
+            // color-profile
+            else if (node.TryFindFirstAncestorUpwards<ColorProfileDirectiveSyntax>(out _))
+			{
+				effective = CssWebData.Index.ColorProfilePropertiesSorted.Select(ToCompletion).ToList();
+			}
+
+			// property
+			else if (node.TryFindFirstAncestorUpwards<PropertyDirectiveSyntax>(out _))
+			{
+				effective = CssWebData.Index.PropertyPropertiesSorted.Select(ToCompletion).ToList();
+			}
+
+			var span = syntax.GetNameSpan().ToAbsolute(node.Position).ToSpan();
             var trackingSpan = snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
             builder.SetSpan(trackingSpan);
             builder.AddFilter(new IntellisenseFilter(KnownMonikers.Property, "Properties", "P", "Properties"));
             builder.Add(effective);
 
             // in regular context
-			if (!node.TryFindFirstAncestorUpwards<FontFaceDirectiveSyntax>(out _))
+			if (node.TryFindFirstAncestorUpwards<RuleDeclarationSyntax>(out _))
             {
 			    // add variables
 				var variables = new Dictionary<string, Completion>();

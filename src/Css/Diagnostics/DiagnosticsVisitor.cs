@@ -1,7 +1,7 @@
 ﻿using Css.Data;
+using Css.Source;
 using Css.Syntax;
 using System;
-using System.Xml.Linq;
 
 namespace Css.Diagnostics;
 
@@ -188,16 +188,34 @@ public class DiagnosticsVisitor(Action<Diagnostic> report) : SyntaxLocatorWalker
                 {
 					if (!CssWebData.Index.FontFacePropertiesSorted.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
 					{
-						Report(node.NameToken, "1", Severity.Warning, $"Property '{name}' is not allowed in this context.", offset: node.LeadingTrivia.Width());
+						Report(node.NameToken, node.GetNameSpan(), "1", Severity.Warning, $"Property '{name}' is not allowed in this context.");
 					}
 				}
                 break;
 
-            default:
+			case ColorProfileDirectiveSyntax:
+				{
+					if (!CssWebData.Index.ColorProfilePropertiesSorted.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+					{
+						Report(node.NameToken, node.GetNameSpan(), "1", Severity.Warning, $"Property '{name}' is not allowed in this context.");
+					}
+				}
+				break;
+
+			case PropertyDirectiveSyntax:
+				{
+					if (!CssWebData.Index.PropertyPropertiesSorted.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+					{
+						Report(node.NameToken, node.GetNameSpan(), "1", Severity.Warning, $"Property '{name}' is not allowed in this context.");
+					}
+				}
+				break;
+
+			default:
                 {
 					if (!name.StartsWith("--", StringComparison.Ordinal) && !CssWebData.Index.Properties.ContainsKey(name))
 					{
-						Report(node.NameToken, "1", Severity.Warning, $"Property '{name}' is unknown.", offset: node.LeadingTrivia.Width());
+						Report(node.NameToken, node.GetNameSpan(), "1", Severity.Warning, $"Property '{name}' is unknown.");
 					}
 				}
                 break;
@@ -232,7 +250,12 @@ public class DiagnosticsVisitor(Action<Diagnostic> report) : SyntaxLocatorWalker
         report(new(id, new(Consumed + offset, node.Width), severity, message));
     }
 
-    protected void ReportAfter(AbstractSyntaxNode node, string id, Severity severity = Severity.Error, string? message = null, int offset = 0)
+	protected void Report(SyntaxToken node, RelativeSourceSpan span, string id, Severity severity = Severity.Error, string? message = null)
+	{
+		report(new(id, new(Consumed + span.RelativePosition, span.Length), severity, message));
+	}
+
+	protected void ReportAfter(AbstractSyntaxNode node, string id, Severity severity = Severity.Error, string? message = null, int offset = 0)
     {
         report(new(id, new(Consumed + offset + node.Width - 1, 1), severity, message));
     }

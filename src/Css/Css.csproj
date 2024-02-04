@@ -84,6 +84,7 @@
     <Compile Include="Syntax\Parser.cs" />
     <Compile Include="Syntax\SyntaxFactory.cs" />
     <Compile Include="Syntax\SyntaxLocatorWalker.cs" />
+    <Compile Include="Syntax\SyntaxNode.AtRules.cs" />
     <Compile Include="Syntax\SyntaxNode.Expressions.cs" />
     <Compile Include="Syntax\SyntaxNode.Tokens.cs" />
     <Compile Include="Syntax\SyntaxNode.Trivia.cs" />
