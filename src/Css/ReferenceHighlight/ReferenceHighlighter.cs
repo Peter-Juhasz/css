@@ -9,15 +9,15 @@ namespace Css.ReferenceHighlight;
 
 public class ReferenceHighlighter
 {
-    public IReadOnlyList<SourceSpan> GetHighlightedSpans(SyntaxTree syntaxTree, SourcePoint triggerPoint)
+    public IReadOnlyList<HighlightedSpan> GetHighlightedSpans(SyntaxTree syntaxTree, SourcePoint triggerPoint)
     {
         var matches = syntaxTree.FindNodeAt(triggerPoint.Position);
         return GetHighlightedSpans(syntaxTree, matches, triggerPoint);
     }
 
-    public IReadOnlyList<SourceSpan> GetHighlightedSpans(SyntaxTree syntaxTree, SyntaxNodeSearchResult matches, SourcePoint triggerPoint)
+    public IReadOnlyList<HighlightedSpan> GetHighlightedSpans(SyntaxTree syntaxTree, SyntaxNodeSearchResult matches, SourcePoint triggerPoint)
     {
-        var list = new List<SourceSpan>();
+        var list = new List<HighlightedSpan>();
         Process(matches, n => InspectForPropertyName(syntaxTree, n, triggerPoint, list));
         Process(matches, n => InspectForVariablePropertyName(syntaxTree, n, triggerPoint, list));
         Process(matches, n => InspectForElementSelector(syntaxTree, n, triggerPoint, list));
@@ -39,7 +39,7 @@ public class ReferenceHighlighter
         InspectForDeclarationBraces(syntaxTree, matches.Before, triggerPoint, list);
         InspectForAttributeSelectorBrackets(syntaxTree, matches.After, triggerPoint, list);
         InspectForAttributeSelectorBrackets(syntaxTree, matches.Before, triggerPoint, list);
-        return list ?? (IReadOnlyList<SourceSpan>)Array.Empty<SourceSpan>();
+        return list ?? (IReadOnlyList<HighlightedSpan>)Array.Empty<HighlightedSpan>();
     }
 
     private bool Process(SyntaxNodeSearchResult matches, Action<SnapshotNode> tryComplete)
@@ -63,7 +63,7 @@ public class ReferenceHighlighter
     }
 
 
-    private void InspectForPropertyName(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForPropertyName(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -85,7 +85,7 @@ public class ReferenceHighlighter
             var finder = new PropertyReferencesFinder(propertyName.NameToken.Value, found =>
             {
                 var span = new SourceSpan(found.Position, found.Node.InnerWidth);
-                collect.Add(span);
+                collect.Add(new(span));
             });
             finder.Visit(syntaxTree);
         }
@@ -114,13 +114,13 @@ public class ReferenceHighlighter
             var finder = new PropertyReferencesFinder(identifier.NameToken.Value, found =>
             {
                 var span = new SourceSpan(found.Position, found.Node.InnerWidth);
-                collect.Add(span);
+                collect.Add(new(span));
             });
             finder.Visit(syntaxTree);
         }
     }
 
-    private void InspectForVariablePropertyName(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForVariablePropertyName(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -157,12 +157,12 @@ public class ReferenceHighlighter
                 true => DefinitionTag,
                 false => ReferenceTag
             });*/
-            collect.Add(span);
+            collect.Add(new(span));
         });
         finder.Visit(syntaxTree);
     }
 
-    private void InspectForPropertyValue(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForPropertyValue(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -198,12 +198,12 @@ public class ReferenceHighlighter
         var finder = new PropertyValueReferencesFinder(propertySyntax.NameToken.Value, identifierSyntax.NameToken.Value, found =>
         {
             var span = new SourceSpan(found.Position, found.Node.Width);
-            collect.Add(span);
+            collect.Add(new(span));
         });
         finder.Visit(syntaxTree);
     }
 
-    private void InspectForNamedColor(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForNamedColor(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -235,11 +235,11 @@ public class ReferenceHighlighter
             return;
         }
 
-        var finder = new ColorReferencesFinder(color, collect.Add);
+        var finder = new ColorReferencesFinder(color, found => collect.Add(new(found)));
         finder.Visit(syntaxTree);
     }
 
-    private void InspectForFunctionName(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForFunctionName(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -265,12 +265,12 @@ public class ReferenceHighlighter
         var finder = new FunctionReferencesFinder(propertyName.NameToken.Value, found =>
         {
             var span = new SourceSpan(found.Position + found.Node.LeadingTrivia.Width(), found.Node.NameToken.Width);
-            collect.Add(span);
+            collect.Add(new(span));
         });
         finder.Visit(syntaxTree);
     }
 
-    private void InspectForElementSelector(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForElementSelector(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -296,12 +296,12 @@ public class ReferenceHighlighter
         var finder = new ElementReferencesFinder(propertyName.NameToken.Value, found =>
         {
             var span = new SourceSpan(found.Position, found.Node.Width);
-            collect.Add(span);
+            collect.Add(new(span));
         });
         finder.Visit(syntaxTree);
     }
 
-    private void InspectForAttributeSelectorName(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForAttributeSelectorName(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -341,12 +341,12 @@ public class ReferenceHighlighter
         var finder = new AttributeReferencesFinder(elementName, attributeSyntax.NameToken.Value, found =>
         {
             var span = new SourceSpan(found.Position, found.Node.Width);
-            collect.Add(span);
+            collect.Add(new(span));
         });
         finder.Visit(syntaxTree);
     }
 
-    private void TryMatchAttributeSelectorValueQuotes(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<SourceSpan> collect)
+    private void TryMatchAttributeSelectorValueQuotes(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -372,12 +372,12 @@ public class ReferenceHighlighter
         }
 
         var openSpan = new SourceSpan(valueStartPosition, 1);
-        collect.Add(openSpan);
+        collect.Add(new(openSpan, "Pair"));
         var closeSpan = new SourceSpan(valueStartPosition + attributeSyntax.ValueToken.Width - 1, 1);
-        collect.Add(closeSpan);
+        collect.Add(new(closeSpan, "Pair"));
     }
 
-    private void InspectForIdSelector(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForIdSelector(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -397,12 +397,12 @@ public class ReferenceHighlighter
 
         var finder = new IdReferencesFinder(propertyName.NameToken.Value, found =>
         {
-            collect.Add(found);
+            collect.Add(new(found));
         });
         finder.Visit(syntaxTree);
     }
 
-    private void InspectForPseudoClassSelector(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForPseudoClassSelector(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -428,12 +428,12 @@ public class ReferenceHighlighter
         var finder = new PseudoClassReferencesFinder(propertyName.NameToken.Value, found =>
         {
             var span = new SourceSpan(found.Position, found.Node.Width);
-            collect.Add(span);
+            collect.Add(new(span));
         });
         finder.Visit(syntaxTree);
     }
 
-    private void InspectForPseudoElementSelector(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForPseudoElementSelector(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -459,12 +459,12 @@ public class ReferenceHighlighter
         var finder = new PseudoElementReferencesFinder(propertyName.NameToken.Value, found =>
         {
             var span = new SourceSpan(found.Position, found.Node.Width);
-            collect.Add(span);
+            collect.Add(new(span));
         });
         finder.Visit(syntaxTree);
     }
 
-    private void InspectForClassSelector(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForClassSelector(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -484,12 +484,12 @@ public class ReferenceHighlighter
 
         var finder = new ClassReferencesFinder(propertyName.NameToken.Value, found =>
         {
-            collect.Add(found);
+            collect.Add(new(found));
         });
         finder.Visit(syntaxTree);
     }
 
-    private void InspectForFunctionParenthesis(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForFunctionParenthesis(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -512,14 +512,14 @@ public class ReferenceHighlighter
         )
         {
             var openSpan = new SourceSpan(node.Value.Position + propertyName.LeadingTrivia.Width() + propertyName.NameToken.Width, 1);
-            collect.Add(openSpan);
+            collect.Add(new(openSpan, "Pair"));
 
             var closeSpan = new SourceSpan(node.Value.Position + propertyName.Width - propertyName.TrailingTrivia.Width() - 1, 1);
-            collect.Add(closeSpan);
+            collect.Add(new(closeSpan, "Pair"));
         }
     }
 
-    private void InspectForDeclarationBraces(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForDeclarationBraces(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -542,14 +542,14 @@ public class ReferenceHighlighter
         )
         {
             var openSpan = new SourceSpan(node.Value.Position + ruleSyntax.LeadingTrivia.Width() + ruleSyntax.Selectors.Width, 1);
-            collect.Add(openSpan);
+            collect.Add(new(openSpan, "Pair"));
 
             var closeSpan = new SourceSpan(node.Value.Position + ruleSyntax.Width - ruleSyntax.TrailingTrivia.Width() - 1, 1);
-            collect.Add(closeSpan);
+            collect.Add(new(closeSpan, "Pair"));
         }
     }
 
-    private void TryMatchStringExpressionQuotes(SyntaxTree syntaxTree, SnapshotNode? node, IList<SourceSpan> collect)
+    private void TryMatchStringExpressionQuotes(SyntaxTree syntaxTree, SnapshotNode? node, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -567,13 +567,13 @@ public class ReferenceHighlighter
         }
 
         var startSpan = new SourceSpan(node.Value.Position + propertyName.LeadingTrivia.Width(), 1);
-        collect.Add(startSpan);
+        collect.Add(new(startSpan, "Pair"));
 
         var endSpan = new SourceSpan(node.Value.Position + propertyName.LeadingTrivia.Width() + propertyName.Token.Width - 1, 1);
-        collect.Add(endSpan);
+        collect.Add(new(endSpan, "Pair"));
     }
 
-    private void InspectForAttributeSelectorBrackets(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<SourceSpan> collect)
+    private void InspectForAttributeSelectorBrackets(SyntaxTree syntaxTree, SnapshotNode? node, SourcePoint point, IList<HighlightedSpan> collect)
     {
         if (node == null)
         {
@@ -598,10 +598,9 @@ public class ReferenceHighlighter
         }
 
         var startSpan = new SourceSpan(node.Value.Position + selectorSyntax.LeadingTrivia.Width(), 1);
-        collect.Add(startSpan);
+        collect.Add(new(startSpan, "Pair"));
 
         var endSpan = new SourceSpan(node.Value.Position + selectorSyntax.Width - selectorSyntax.TrailingTrivia.Width() - selectorSyntax.CloseBracketToken.Width, 1);
-        collect.Add(endSpan);
+        collect.Add(new(endSpan, "Pair"));
     }
-
 }

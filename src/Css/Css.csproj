@@ -60,6 +60,7 @@
     <Compile Include="Adornments\ColorsFinder.cs" />
     <Compile Include="ReferenceHighlight\AttributeReferencesFinder.cs" />
     <Compile Include="ReferenceHighlight\ColorReferencesFinder.cs" />
+    <Compile Include="ReferenceHighlight\HighlightedSpan.cs" />
     <Compile Include="Semantics\ClassesFinder.cs" />
     <Compile Include="ReferenceHighlight\ElementReferencesFinder.cs" />
     <Compile Include="ReferenceHighlight\FunctionReferencesFinder.cs" />
