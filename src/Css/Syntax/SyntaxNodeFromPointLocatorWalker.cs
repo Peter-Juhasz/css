@@ -79,7 +79,20 @@ public class SyntaxNodeFromPointLocatorWalker(int position) : SyntaxLocatorWalke
         base.Visit(node);
     }
 
-    public override void Visit(ElementSelectorSyntax node)
+
+	public override void Visit(KeyframeFrameDirectiveSyntax node)
+	{
+		if (Consumed + node.Width < position)
+		{
+			MarkAsConsumed(node);
+			return;
+		}
+
+		Inspect(node);
+		base.Visit(node);
+	}
+
+	public override void Visit(ElementSelectorSyntax node)
     {
         Inspect(node);
         base.Visit(node);
@@ -149,6 +162,14 @@ public record struct SnapshotNode(int Position, AbstractSyntaxNode Node, IReadOn
 public record struct SnapshotNode<TSyntax>(int Position, TSyntax Node, IReadOnlyList<SyntaxNode>? Ancestors = null) where TSyntax : AbstractSyntaxNode
 {
     public readonly SourceSpan Extent => new(Position, Node.Width);
+
+	public readonly SyntaxNode? Parent => Ancestors switch
+    {
+        null => null,
+        { Count: 0 } => null,
+        { Count: 1 } => Ancestors[0],
+		_ => Ancestors[^1]
+    };
 
     public bool TryFindFirstAncestorUpwards<TAncestor>( out TAncestor ancestor) where TAncestor : SyntaxNode
     {

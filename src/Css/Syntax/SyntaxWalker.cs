@@ -106,6 +106,7 @@ public abstract class SyntaxWalker
 			case FontFaceDirectiveSyntax n: Visit(n); break;
 			case ColorProfileDirectiveSyntax n: Visit(n); break;
 			case PropertyDirectiveSyntax n: Visit(n); break;
+			case KeyframesDirectiveSyntax n: Visit(n); break;
 		}
 	}
 
@@ -142,6 +143,33 @@ public abstract class SyntaxWalker
 		VisitLeadingTrivia(node);
 		VisitToken(node.KeywordToken);
 		VisitToken(node.IdentifierToken);
+		VisitToken(node.OpenBrace);
+		foreach (var property in node.Properties.Items.AsValueEnumerable())
+		{
+			Visit(property);
+		}
+		VisitToken(node.CloseBrace);
+		VisitTrailingTrivia(node);
+	}
+
+	public virtual void Visit(KeyframesDirectiveSyntax node)
+	{
+		VisitLeadingTrivia(node);
+		VisitToken(node.KeywordToken);
+		VisitToken(node.IdentifierToken);
+		VisitToken(node.OpenBrace);
+		foreach (var property in node.Frames.Items.AsValueEnumerable())
+		{
+			Visit(property);
+		}
+		VisitToken(node.CloseBrace);
+		VisitTrailingTrivia(node);
+	}
+
+	public virtual void Visit(KeyframeFrameDirectiveSyntax node)
+	{
+		VisitLeadingTrivia(node);
+		Visit(node.Expression);
 		VisitToken(node.OpenBrace);
 		foreach (var property in node.Properties.Items.AsValueEnumerable())
 		{
@@ -321,7 +349,15 @@ public abstract class SyntaxWalker
 			case StringExpressionSyntax t: Visit(t); break;
 			case FunctionCallExpressionSyntax t: Visit(t); break;
 			case HexColorExpressionSyntax t: Visit(t); break;
+			case KeywordExpressionSyntax t: Visit(t); break;
 		}
+	}
+
+	public virtual void Visit(KeywordExpressionSyntax node)
+	{
+		VisitLeadingTrivia(node);
+		VisitToken(node.KeywordToken);
+		VisitTrailingTrivia(node);
 	}
 
 	public virtual void Visit(HexColorExpressionSyntax node)

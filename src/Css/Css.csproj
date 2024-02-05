@@ -58,9 +58,11 @@
     <Compile Include="Outlining\OutliningSyntaxWalker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Adornments\ColorsFinder.cs" />
+    <Compile Include="ReferenceHighlight\AnimationReferencesFinder.cs" />
     <Compile Include="ReferenceHighlight\AttributeReferencesFinder.cs" />
     <Compile Include="ReferenceHighlight\ColorReferencesFinder.cs" />
     <Compile Include="ReferenceHighlight\HighlightedSpan.cs" />
+    <Compile Include="Semantics\AnimationDefinitionFinder.cs" />
     <Compile Include="Semantics\ClassesFinder.cs" />
     <Compile Include="ReferenceHighlight\ElementReferencesFinder.cs" />
     <Compile Include="ReferenceHighlight\FunctionReferencesFinder.cs" />
@@ -72,6 +74,7 @@
     <Compile Include="ReferenceHighlight\PseudoClassReferencesFinder.cs" />
     <Compile Include="ReferenceHighlight\PseudoElementReferencesFinder.cs" />
     <Compile Include="ReferenceHighlight\ReferenceHighlighter.cs" />
+    <Compile Include="Semantics\PropertyDefinitionFinder.cs" />
     <Compile Include="Semantics\VariableDefinitionFinder.cs" />
     <Compile Include="ReferenceHighlight\VariableReferencesFinder.cs" />
     <Compile Include="Semantics\ISymbol.cs" />
@@ -82,6 +85,7 @@
     <Compile Include="Structure\StructureSyntaxWalker.cs" />
     <Compile Include="Syntax\DocumentSyntax.cs" />
     <Compile Include="Syntax\Extensions.cs" />
+    <Compile Include="Syntax\IBlockSyntax.cs" />
     <Compile Include="Syntax\Parser.cs" />
     <Compile Include="Syntax\SyntaxFactory.cs" />
     <Compile Include="Syntax\SyntaxLocatorWalker.cs" />

@@ -465,6 +465,10 @@ public static class Parser
 		{
 			syntax = property;
 		}
+		else if (TryReadKeyframesDirectiveSyntax(segment, out var keyframes))
+		{
+			syntax = keyframes;
+		}
 		else if (segment.PeekSafe() is '@' && TryReadIdentifier(segment.Subsegment(1), out var keyword))
         {
             syntax = new SpeculativeDirectiveSyntax(SyntaxFactory.Keyword(segment.Subsegment(0, 1 + keyword.Length)));
@@ -601,6 +605,141 @@ public static class Parser
 		}
 
 		syntax = new ColorProfileDirectiveSyntax(keyword, identifierToken, open, new SyntaxList<PropertySyntax>(list.ToImmutableList()), close);
+		return true;
+	}
+
+	public static bool TryReadKeyframesDirectiveSyntax(this StringSegment segment, out KeyframesDirectiveSyntax? syntax)
+	{
+		if (!TryReadExact(segment, "@keyframes", out var read))
+		{
+			syntax = null;
+			return false;
+		}
+		var keyword = SyntaxFactory.Keyword(read);
+		segment = segment.Subsegment(keyword.Width);
+
+		// identifier
+		if (TryReadTrivia(segment, out var leadingTrivia))
+		{
+			segment = segment.Subsegment(leadingTrivia.Width());
+		}
+
+		if (TryReadIdentifier(segment, out var identifier))
+		{
+			segment = segment.Subsegment(identifier.Length);
+		}
+
+		if (TryReadTrivia(segment, out var trailingTrivia))
+		{
+			segment = segment.Subsegment(trailingTrivia.Width());
+		}
+
+		var identifierToken = SyntaxFactory.Identifier(identifier) with { LeadingTrivia = leadingTrivia, TrailingTrivia = trailingTrivia };
+
+		// open
+		if (TryReadPunctation(segment, '{', out var open))
+		{
+			segment = segment.Subsegment(1);
+		}
+
+		var list = new List<KeyframeFrameDirectiveSyntax>();
+		while (segment.Any())
+		{
+			// read properties
+			if (!TryReadKeyframesFrameDirectiveSyntax(segment, out var property))
+			{
+				break;
+			}
+
+			list.Add(property);
+			segment = segment.Subsegment(property.Width);
+		}
+
+		if (!list.Any())
+		{
+			if (TryReadTrivia(segment, out var emptyBlockTrivia))
+			{
+				open = open with { TrailingTrivia = emptyBlockTrivia };
+				segment = segment.Subsegment(emptyBlockTrivia.Width());
+			}
+		}
+
+		// close
+		if (TryReadPunctation(segment, '}', out var close))
+		{
+			segment = segment.Subsegment(1);
+		}
+
+		syntax = new KeyframesDirectiveSyntax(keyword, identifierToken, open, new SyntaxList<KeyframeFrameDirectiveSyntax>(list.ToImmutableList()), close);
+		return true;
+	}
+
+	public static bool TryReadKeyframesFrameDirectiveSyntax(this StringSegment segment, out KeyframeFrameDirectiveSyntax? syntax)
+	{
+		// identifier
+		if (TryReadTrivia(segment, out var leadingTrivia))
+		{
+			segment = segment.Subsegment(leadingTrivia.Width());
+		}
+
+        ExpressionSyntax expression;
+		if (TryReadNumberOrUnitSyntax(segment, out expression))
+		{
+			segment = segment.Subsegment(expression.Width);
+		}
+        else if (TryReadIdentifier(segment, out var read))
+		{
+			expression = (read == "from" || read == "to") ? new KeywordExpressionSyntax(SyntaxFactory.Keyword(read)) : SyntaxFactory.IdentifierExpression(read);
+			segment = segment.Subsegment(expression.Width);
+		}
+        else
+        {
+            syntax = null;
+            return false;
+        }
+
+		if (TryReadTrivia(segment, out var trailingTrivia))
+		{
+			segment = segment.Subsegment(trailingTrivia.Width());
+		}
+
+		expression = expression with { LeadingTrivia = leadingTrivia, TrailingTrivia = trailingTrivia };
+
+		// open
+		if (TryReadPunctation(segment, '{', out var open))
+		{
+			segment = segment.Subsegment(1);
+		}
+
+		var list = new List<PropertySyntax>();
+		while (segment.Any())
+		{
+			// read properties
+			if (!TryReadPropertySyntax(segment, out var property))
+			{
+				break;
+			}
+
+			list.Add(property);
+			segment = segment.Subsegment(property.Width);
+		}
+
+		if (!list.Any())
+		{
+			if (TryReadTrivia(segment, out var emptyBlockTrivia))
+			{
+				open = open with { TrailingTrivia = emptyBlockTrivia };
+				segment = segment.Subsegment(emptyBlockTrivia.Width());
+			}
+		}
+
+		// close
+		if (TryReadPunctation(segment, '}', out var close))
+		{
+			segment = segment.Subsegment(1);
+		}
+
+		syntax = new KeyframeFrameDirectiveSyntax(expression, open, new SyntaxList<PropertySyntax>(list.ToImmutableList()), close);
 		return true;
 	}
 

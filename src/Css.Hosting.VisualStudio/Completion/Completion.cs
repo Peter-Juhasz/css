@@ -85,6 +85,7 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
             Process(matches, m => TryCompleteUnits(snapshot, syntaxTree, m, triggerPoint.Value, builder));
             Process(matches, m => TryAddFunctions(snapshot, syntaxTree, m, builder));
             Process(matches, m => TryAddPropertyValues(snapshot, syntaxTree, m, builder));
+			Process(matches, m => TryAddAnimations(snapshot, syntaxTree, m, builder));
             Process(matches, m => TryAddColors(snapshot, syntaxTree, m, builder));
             Process(matches, m => TryCompleteVarArgument(snapshot, syntaxTree, m, triggerPoint.Value, builder));
             Process(matches, m => TryCompleteClassSelector(snapshot, syntaxTree, m, builder));
@@ -95,6 +96,7 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
             Process(matches, m => TryCompleteAttributeSelectorName(snapshot, syntaxTree, m, triggerPoint.Value, builder));
             Process(matches, m => TryCompleteAttributeSelectorValue(snapshot, syntaxTree, m, triggerPoint.Value, builder));
             Process(matches, m => TryCompleteDirectiveKeywords(snapshot, syntaxTree, m, builder));
+            Process(matches, m => TryCompleteKeyframeFrame(snapshot, syntaxTree, m, sourceTriggerPoint, builder));
 
             if (builder.Completions.Count == 0)
                 return;
@@ -169,9 +171,25 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
             builder.Add(effective);
 
             // in regular context
-			if (node.TryFindFirstAncestorUpwards<RuleDeclarationSyntax>(out _))
-            {
-			    // add variables
+			if (node.TryFindFirstAncestorUpwards<RuleDeclarationSyntax>(out _) ||
+                node.TryFindFirstAncestorUpwards<KeyframeFrameDirectiveSyntax>(out _))
+			{
+				// add custom properties
+				List<Completion>? customProperties = null;
+				var propertyFinder = new PropertyDefinitionFinder(n =>
+				{
+					var completion = new Completion(n.Node.Value, n.Node.Value, null, _propertyGlyph, null);
+                    customProperties ??= [];
+					customProperties.Add(completion);
+				});
+				propertyFinder.Visit(syntaxTree);
+
+                if (customProperties != null)
+                {
+                    builder.Add(customProperties);
+                }
+
+				// add variables
 				var variables = new Dictionary<string, Completion>();
 				var finder = new VariableDefinitionFinder(n =>
 				{
@@ -212,7 +230,35 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
 			return true;
         }
 
-        private bool TryAddPropertiesAsValues(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
+		private bool TryCompleteKeyframeFrame(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, CssCompletionsBuilder builder)
+		{
+			if (!node.TryFindFirstAncestorUpwards<KeyframeFrameDirectiveSyntax>(out var syntax))
+			{
+				return false;
+			}
+
+            if (syntax is not { Expression: KeywordExpressionSyntax or IdentifierExpressionSyntax })
+            {
+                return false;
+            }
+
+			if (!syntax.GetHeaderSpan().ToAbsolute(node.Position).Contains(point))
+			{
+				return false;
+			}
+
+			// basic properties
+			var effective = new[] { "from", "to" }.Select(k => new Completion(k, k, null, _keywordGlyph, null)).ToList();
+
+			var span = syntax.GetHeaderSpan().ToAbsolute(node.Position).ToSpan();
+			var trackingSpan = snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
+			builder.SetSpan(trackingSpan);
+			//builder.AddFilter(new IntellisenseFilter(KnownMonikers.IntellisenseKeyword, "Keywords", "K", "Keywords"));
+			builder.Add(effective);
+			return true;
+		}
+
+		private bool TryAddPropertiesAsValues(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
         {
             if (node.Node is not IdentifierExpressionSyntax propertyName)
             {
@@ -655,7 +701,52 @@ internal sealed class CssCompletionSourceProvider : ICompletionSourceProvider
             return true;
         }
 
-        private bool TryAddColors(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
+		private bool TryAddAnimations(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
+		{
+			if (node.Node is not IdentifierExpressionSyntax propertyName)
+			{
+				return false;
+			}
+
+			if (!node.TryFindFirstAncestorUpwards<PropertySyntax>(out var propertySyntax))
+			{
+				return false;
+			}
+
+			if (node.TryFindFirstAncestorUpwards<FunctionCallExpressionSyntax>(out var functionCallExpressionSyntax))
+			{
+				if (functionCallExpressionSyntax.NameToken.Value.Equals("var", StringComparison.OrdinalIgnoreCase))
+				{
+					return false;
+				}
+			}
+
+			if (!propertySyntax.NameToken.Value.Equals("animation-name", StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
+
+            var animations = new List<Completion>();
+            var finder = new AnimationDefinitionFinder(found =>
+            {
+                animations.Add(new Completion(found.Node.Value, found.Node.Value, null, _variableGlyph, null));
+            });
+            finder.Visit(syntaxTree);
+
+            if (animations.Any())
+            {
+                var span = new Span(node.Position + propertyName.LeadingTrivia.Width(), propertyName.NameToken.Width);
+                var trackingSpan = snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
+                builder.SetSpan(trackingSpan);
+                var filter = new IntellisenseFilter(KnownMonikers.LocalVariable, "Variables", "V", "Variables");
+                builder.AddFilter(filter);
+                builder.Add(animations);
+            }
+
+			return true;
+		}
+
+		private bool TryAddColors(ITextSnapshot snapshot, SyntaxTree syntaxTree, SnapshotNode node, CssCompletionsBuilder builder)
         {
             if (node.Node is not IdentifierExpressionSyntax propertyName)
             {

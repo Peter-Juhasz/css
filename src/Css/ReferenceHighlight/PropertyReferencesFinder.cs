@@ -9,6 +9,7 @@ public class PropertyReferencesFinder : SyntaxNodeFinder<IdentifierToken>
 {
     public PropertyReferencesFinder(string name, Action<SnapshotNode<IdentifierToken>> found, bool matchVendorSpecifics = true) : base(found)
     {
+        this.name = name;
         this.normalizedName = Normalize(name);
         this.matchVendorSpecifics = matchVendorSpecifics;
     }
@@ -16,9 +17,10 @@ public class PropertyReferencesFinder : SyntaxNodeFinder<IdentifierToken>
     private bool _searchValues = false;
     private readonly bool matchVendorSpecifics;
     private readonly string normalizedName;
+    private readonly string name;
 
 
-    public override void Visit(PropertySyntax node)
+	public override void Visit(PropertySyntax node)
 	{
 		if (Matches(node.NameToken.Value))
 		{
@@ -36,7 +38,17 @@ public class PropertyReferencesFinder : SyntaxNodeFinder<IdentifierToken>
         _searchValues = false;
     }
 
-    public override void Visit(IdentifierToken node)
+	public override void Visit(PropertyDirectiveSyntax node)
+	{
+        if (name == node.IdentifierToken.Value)
+		{
+			Report(node.IdentifierToken, offset: node.GetNameSpan().RelativePosition);
+		}
+
+		base.Visit(node);
+	}
+
+	public override void Visit(IdentifierToken node)
     {
         if (_searchValues)
         {

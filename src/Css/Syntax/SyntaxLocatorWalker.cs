@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Css.Source;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -72,8 +73,17 @@ public abstract class SyntaxLocatorWalker(int initialPosition = 0) : SyntaxWalke
         Pop();
     }
 
+	public override void Visit(KeyframeFrameDirectiveSyntax node)
+	{
+		if (IsCancelled) return;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+		Push(node);
+		base.Visit(node);
+		Pop();
+	}
+
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected void Push(SyntaxNode node) => Stack.Add(node);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -100,5 +110,5 @@ public abstract class SyntaxLocatorWalker(int initialPosition = 0) : SyntaxWalke
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected SnapshotNode<TSyntax> CreateMatch<TSyntax>(TSyntax node, int offset = 0) where TSyntax : AbstractSyntaxNode => new(Consumed + offset, node, [.. Stack]);
 
-    protected void Cancel() => IsCancelled = true;
+	protected void Cancel() => IsCancelled = true;
 }

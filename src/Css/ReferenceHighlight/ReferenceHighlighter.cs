@@ -85,7 +85,7 @@ public class ReferenceHighlighter
             var finder = new PropertyReferencesFinder(propertyName.NameToken.Value, found =>
             {
                 var span = new SourceSpan(found.Position, found.Node.InnerWidth);
-                collect.Add(new(span));
+                collect.Add(new(span, found.Parent is PropertyDirectiveSyntax ? "Definition" : "Reference"));
             });
             finder.Visit(syntaxTree);
         }
@@ -150,14 +150,8 @@ public class ReferenceHighlighter
 
         var finder = new VariableReferencesFinder(variableName, found =>
         {
-            var span = new SourceSpan(found.Position, found.Node.Width);
-            var isDefinition = !found.TryFindFirstAncestorUpwards<FunctionCallExpressionSyntax>(out _);
-            /*var tag = new SourceSpan(span, isDefinition switch
-            {
-                true => DefinitionTag,
-                false => ReferenceTag
-            });*/
-            collect.Add(new(span));
+            var span = new SourceSpan(found.Position, found.Node.InnerWidth);
+			collect.Add(new(span, found.Parent is PropertyDirectiveSyntax ? "Definition" : "Reference"));
         });
         finder.Visit(syntaxTree);
     }
@@ -179,29 +173,37 @@ public class ReferenceHighlighter
             return;
         }
 
-        if (!CssWebData.Index.Properties.TryGetValue(propertySyntax.NameToken.Value, out var definition))
+        if (CssWebData.Index.Properties.TryGetValue(propertySyntax.NameToken.Value, out var definition))
         {
-            return;
-        }
+            // enums
+            if (definition.Restrictions != null && definition.Restrictions.Contains("enum"))
+            {
+                if (definition.Values != null && definition.Values.Count != 0 && definition.Values.Any(v => v.Name == identifierSyntax.NameToken.Value))
+                {
+                    var finder = new PropertyValueReferencesFinder(propertySyntax.NameToken.Value, identifierSyntax.NameToken.Value, found =>
+                    {
+                        var span = new SourceSpan(found.Position, found.Node.InnerWidth);
+                        collect.Add(new(span));
+                    });
+                    finder.Visit(syntaxTree);
+				}
+			}
 
-        if (!definition.Restrictions.Contains("enum"))
-        {
-            return;
-        }
-
-        if (definition.Values == null || definition.Values.Count == 0 || !definition.Values.Any(v => v.Name == identifierSyntax.NameToken.Value))
-        {
-            return;
-        }
-
-        var nameSpan = new SourceSpan(node.Position + identifierSyntax.LeadingTrivia.Width(), identifierSyntax.NameToken.Width + 1);
-        var finder = new PropertyValueReferencesFinder(propertySyntax.NameToken.Value, identifierSyntax.NameToken.Value, found =>
-        {
-            var span = new SourceSpan(found.Position, found.Node.Width);
-            collect.Add(new(span));
-        });
-        finder.Visit(syntaxTree);
-    }
+            // animations
+            if (definition.Name == "animation-name")
+            {
+                if (identifierSyntax.NameToken.Value != "none")
+				{
+					var finder = new AnimationReferencesFinder(identifierSyntax.NameToken.Value, found =>
+					{
+						var span = new SourceSpan(found.Position, found.Node.InnerWidth);
+						collect.Add(new(span, found.Parent is KeyframesDirectiveSyntax ? "Definition" : "Reference"));
+					});
+					finder.Visit(syntaxTree);
+				}
+            }
+		}
+	}
 
     private void InspectForNamedColor(SyntaxTree syntaxTree, SnapshotNode node, SourcePoint point, IList<HighlightedSpan> collect)
     {

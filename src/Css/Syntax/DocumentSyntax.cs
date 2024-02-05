@@ -69,11 +69,15 @@ public record class InlineDocumentSyntax(SyntaxList<PropertySyntax> Properties) 
     public override int InnerWidth => Properties.Width;
 }
 
-public record class RuleDeclarationSyntax(SelectorListSyntax Selectors, SyntaxToken OpenBrace, SyntaxList<SyntaxNode> Nodes, SyntaxToken CloseBrace) : SyntaxNode
+public record class RuleDeclarationSyntax(SelectorListSyntax Selectors, PunctationToken OpenBrace, SyntaxList<SyntaxNode> Nodes, PunctationToken CloseBrace) : SyntaxNode, IBlockSyntax
 {
     public override int InnerWidth => Selectors.Width + OpenBrace.Width + Nodes.Width + CloseBrace.Width;
-}
 
+	public RelativeSourceSpan GetBlockSpan() => RelativeSourceSpan.FromBounds(this,
+        LeadingTrivia.Width() + Selectors.Width + OpenBrace.LeadingTrivia.Width(),
+        Width - TrailingTrivia.Width() - CloseBrace.TrailingTrivia.Width()
+    );
+}
 
 
 public abstract record class SimpleSelectorSyntax : SyntaxNode

@@ -13,4 +13,14 @@ public class VariableReferencesFinder(string name, Action<SnapshotNode<Identifie
 
         base.Visit(node);
     }
+
+	public override void Visit(PropertyDirectiveSyntax node)
+	{
+		if (name == node.IdentifierToken.Value)
+		{
+			Report(node.IdentifierToken, offset: node.GetNameSpan().RelativePosition);
+		}
+
+		base.Visit(node);
+	}
 }
